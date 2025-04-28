@@ -1,0 +1,10 @@
+summary:
+    Run browser integration tests on the host
+require:
+  - cockpit-starter-kit
+  - podman
+  - cockpit-ws
+  - cockpit-system
+  - glibc-langpack-de
+test: ./browser.sh
+duration: 60m

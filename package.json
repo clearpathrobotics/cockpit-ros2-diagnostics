@@ -1,0 +1,59 @@
+{
+  "name": "starter-kit",
+  "description": "Scaffolding for a cockpit module",
+  "type": "module",
+  "main": "index.js",
+  "repository": "git@github.com:cockpit/starter-kit.git",
+  "author": "",
+  "license": "LGPL-2.1",
+  "engines": {
+    "node": ">= 16"
+  },
+  "scripts": {
+    "watch": "ESBUILD_WATCH='true' ./build.js",
+    "build": "./build.js",
+    "eslint": "eslint src/",
+    "eslint:fix": "eslint --fix src/",
+    "stylelint": "stylelint src/*{.css,scss}",
+    "stylelint:fix": "stylelint --fix src/*{.css,scss}"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.13",
+    "@types/react-dom": "18.3.1",
+    "@typescript-eslint/eslint-plugin": "8.31.0",
+    "argparse": "2.0.1",
+    "esbuild": "0.25.3",
+    "esbuild-plugin-copy": "2.1.1",
+    "esbuild-plugin-replace": "1.4.0",
+    "esbuild-sass-plugin": "3.3.1",
+    "esbuild-wasm": "0.25.3",
+    "eslint": "8.57.1",
+    "eslint-config-standard": "17.1.0",
+    "eslint-config-standard-jsx": "11.0.0",
+    "eslint-config-standard-react": "13.0.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "6.6.0",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "4.6.2",
+    "gettext-parser": "8.0.0",
+    "glob": "11.0.2",
+    "jed": "1.1.1",
+    "qunit": "2.24.1",
+    "sass": "1.79.6",
+    "stylelint": "16.19.1",
+    "stylelint-config-recommended-scss": "14.0.0",
+    "stylelint-config-standard": "38.0.0",
+    "stylelint-config-standard-scss": "14.0.0",
+    "stylelint-formatter-pretty": "4.0.1",
+    "typescript": "5.8.3"
+  },
+  "dependencies": {
+    "@patternfly/patternfly": "6.1.0",
+    "@patternfly/react-core": "6.1.0",
+    "@patternfly/react-icons": "6.1.0",
+    "@patternfly/react-styles": "6.2.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}
