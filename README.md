@@ -18,8 +18,8 @@ On Fedora:
 These commands check out the source and build it into the `dist/` directory:
 
 ```
-git clone https://github.com/cockpit-project/starter-kit.git
-cd starter-kit
+git clone https://github.com/clearpathrobotics/cockpit-ros2-diagnostics.git
+cd cockpit-ros2-diagnostics
 make
 ```
 
@@ -39,7 +39,7 @@ this manually:
 
 ```
 mkdir -p ~/.local/share/cockpit
-ln -s `pwd`/dist ~/.local/share/cockpit/starter-kit
+ln -s `pwd`/dist ~/.local/share/cockpit/cockpit-ros2-diagnostics
 ```
 
 After changing the code and running `make` again, reload the Cockpit page in
@@ -70,7 +70,7 @@ set to upload code changes to `~/.local/share/cockpit/` instead of
 To "uninstall" the locally installed version, run `make devel-uninstall`, or
 remove manually the symlink:
 
-    rm ~/.local/share/cockpit/starter-kit
+    rm ~/.local/share/cockpit/cockpit-ros2-diagnostics
 
 # Running eslint
 
@@ -153,16 +153,7 @@ for using with the [tmt test management tool](https://docs.fedoraproject.org/en-
 Note that Packit tests can *not* run their own virtual machine images, thus
 they only run [@nondestructive tests](https://github.com/cockpit-project/cockpit/blob/main/test/common/testlib.py).
 
-# Customizing
-
-After cloning the Starter Kit you should rename the files, package names, and
-labels to your own project's name. Use these commands to find out what to
-change:
-
-    find -iname '*starter*'
-    git grep -i starter
-
-# Automated release
+# Automated release of tarballs on Github
 
 Once your cloned project is ready for a release, you should consider automating
 that. The intention is that the only manual step for releasing a project is to create

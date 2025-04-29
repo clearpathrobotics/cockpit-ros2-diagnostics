@@ -1,9 +1,9 @@
 {
-  "name": "starter-kit",
+  "name": "ros2-diagnostics",
   "description": "Scaffolding for a cockpit module",
   "type": "module",
   "main": "index.js",
-  "repository": "git@github.com:cockpit/starter-kit.git",
+  "repository": "git@github.com:clearpathrobotics/cockpit-ros2-diagnostics.git",
   "author": "",
   "license": "LGPL-2.1",
   "engines": {

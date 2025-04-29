@@ -17,19 +17,19 @@
 /*.whl
 /bots
 /cockpit-*.tar.xz
-/cockpit-navigator.spec
+/cockpit-ros2-diagnostics.spec
 /dist/
 /package-lock.json
 /pkg/
 /node_modules/
 /tmp/
 /tools/
- 
+
 # subdirs (/subdir/...)
 /packaging/arch/PKGBUILD
 /packaging/debian/changelog
 /po/*.pot
- /po/LINGUAS
+/po/LINGUAS
 /test/common/
 /test/images/
 /test/static-code

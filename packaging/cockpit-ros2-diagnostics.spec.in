@@ -1,11 +1,11 @@
-Name: cockpit-starter-kit
+Name: cockpit-ros2-diagnostics
 Version: %{VERSION}
 Release: 1%{?dist}
-Summary: Cockpit Starter Kit Example Module
+Summary: Cockpit ROS 2 Diagnostics Module
 License: LGPL-2.1-or-later
 
-Source0: https://github.com/cockpit-project/starter-kit/releases/download/%{version}/%{name}-%{version}.tar.xz
-Source1: https://github.com/cockpit-project/starter-kit/releases/download/%{version}/%{name}-node-%{version}.tar.xz
+Source0: https://github.com/clearpathrobotics/cockpit-ros2-diagnostics/releases/download/%{version}/%{name}-%{version}.tar.xz
+Source1: https://github.com/clearpathrobotics/cockpit-ros2-diagnostics/releases/download/%{version}/%{name}-node-%{version}.tar.xz
 BuildArch: noarch
 %if ! 0%{?suse_version}
 ExclusiveArch: %{nodejs_arches} noarch
@@ -30,7 +30,7 @@ Requires: cockpit-bridge
 %{NPM_PROVIDES}
 
 %description
-Cockpit Starter Kit Example Module
+Cockpit ROS 2 Diagnostics Module
 
 %prep
 %autosetup -n %{name} -a 1
