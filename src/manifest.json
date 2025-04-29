@@ -3,14 +3,15 @@
         "cockpit": "137"
     },
 
-    "tools": {
+    "menu": {
         "index": {
             "label": "ROS 2 diagnostics",
             "keywords": [
                 {
                     "matches": ["robot", "health", "status"]
                 }
-            ]
+            ],
+            "order": 105
         }
     }
 }
