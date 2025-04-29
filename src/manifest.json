@@ -5,7 +5,12 @@
 
     "tools": {
         "index": {
-            "label": "ROS 2 diagnostics"  // diagnostics is not capitalized to match other modules
+            "label": "ROS 2 diagnostics",
+            "keywords": [
+                {
+                    "matches": ["robot", "health", "status"]
+                }
+            ]
         }
     }
 }
