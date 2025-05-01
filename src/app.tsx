@@ -44,17 +44,14 @@ const sanitizeNamespace = (namespace: string): string => {
         sanitizedNamespace = "/" + sanitizedNamespace;
     }
 
-    if (originalNamespace.replace(/^\/|\/$/g, "") !== sanitizedNamespace.replace(/^\/|\/$/g, "")) {
-        console.warn(`Invalid namespace: ${originalNamespace}, trying to use: ${sanitizedNamespace}`);
-    }
-
     return sanitizedNamespace;
 };
 
 export const Application = () => {
     const [namespace, setNamespace] = useState(DEFAULT_NAMESPACE); // Default namespace
-    const [url, setUrl] = useState<string>("");
+    const [url, setUrl] = useState<string | null>(null);
     const [diagnostics, setDiagnostics] = useState([]);
+    const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
 
     useEffect(() => {
         // Fetch the IP address of the Cockpit instance
@@ -74,25 +71,44 @@ export const Application = () => {
         const updateNamespace = (content) => {
             if (content) {
                 const trimmedContent = content.trim();
-
+                let originalNamespace = "";
+                let sanitizedNamespace = "";
                 // Filter out commented lines
                 const uncommentedLines = trimmedContent
                         .split("\n")
                         .filter(line => !line.trim().startsWith("#"))
                         .join("\n");
 
-                // Extract namespace or serial_number, ensuring serial_number has no leading white spaces
+                // Extract namespace
                 const namespaceMatch = uncommentedLines.match(/^[ \t]*namespace:[ \t]*(\S+)/ms);
-                const serialNumberMatch = uncommentedLines.match(/^serial_number:[ \t]*(\S+)/ms); // No leading white spaces for serial_number
+                const serialNumberMatch = uncommentedLines.match(/^serial_number:[ \t]*(\S+)/ms);
                 if (namespaceMatch) {
-                    setNamespace(sanitizeNamespace(namespaceMatch[1]));
+                    originalNamespace = namespaceMatch[1];
+                    sanitizedNamespace = sanitizeNamespace(namespaceMatch[1]);
+                    setNamespace(sanitizedNamespace);
                 } else if (serialNumberMatch) {
-                    setNamespace(sanitizeNamespace(serialNumberMatch[1]));
+                    originalNamespace = serialNumberMatch[1];
+                    sanitizedNamespace = sanitizeNamespace(serialNumberMatch[1]);
+                    setNamespace(sanitizedNamespace);
                 } else {
                     console.warn(_("Neither namespace nor serial_number found in robot.yaml"));
+                    setInvalidNamespaceMessage(_("Neither namespace nor serial_number found in robot.yaml"));
+                    return;
                 }
+
+                if (originalNamespace.replace(/^\/|\/$/g, "") !== sanitizedNamespace.replace(/^\/|\/$/g, "")) {
+                    const message = `Invalid namespace: "${originalNamespace}", trying to connect using: "${sanitizedNamespace}"`;
+                    console.warn(message);
+                    setInvalidNamespaceMessage(message);
+                }
+                else {
+                    setInvalidNamespaceMessage(null);
+                }
+
             } else {
-                console.warn(_("robot.yaml content is empty or null"));
+                const message = _("robot.yaml content is empty or null");
+                console.warn(message);
+                setInvalidNamespaceMessage(message);
             }
         };
 
@@ -101,8 +117,12 @@ export const Application = () => {
     }, []);
 
     useEffect(() => {
-        if (namespace === DEFAULT_NAMESPACE || !url) {
-            console.warn("Namespace or URL is not set. Skipping WebSocket configuration.");
+        if (namespace === DEFAULT_NAMESPACE) {
+            console.warn("Namespace is not set correctly. Skipping WebSocket configuration.");
+            return;
+        }
+        if (!url) {
+            console.warn("Websocket URL is not set correctly. Skipping WebSocket configuration.");
             return;
         }
 
@@ -149,6 +169,12 @@ export const Application = () => {
         <Card>
             <CardTitle>ROS 2 Diagnostics</CardTitle>
             <CardBody>
+                {invalidNamespaceMessage && (
+                    <Alert
+                        variant="danger"
+                        title={invalidNamespaceMessage}
+                    />
+                )}
                 <Alert
                     variant="info"
                     title={ cockpit.format("Namespace: $0", namespace) }
