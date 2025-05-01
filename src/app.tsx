@@ -142,7 +142,7 @@ export const Application = () => {
 
         const diagnosticsTopic = new ROSLIB.Topic({
             ros,
-            name: `/${namespace}/diagnostics_agg`,
+            name: `${namespace}/diagnostics_agg`,
             messageType: "diagnostic_msgs/DiagnosticArray",
         });
 
