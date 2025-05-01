@@ -23,10 +23,14 @@ import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/compo
 
 import cockpit from 'cockpit';
 
+import * as ROSLIB from "./roslib/index";
+
 const _ = cockpit.gettext;
 
 export const Application = () => {
     const [namespace, setNamespace] = useState(_("default_namespace")); // Default namespace
+    const [url, setUrl] = useState<string>("");
+    const [diagnostics, setDiagnostics] = useState([]);
 
     useEffect(() => {
         // Fetch the IP address of the Cockpit instance
@@ -72,6 +76,51 @@ export const Application = () => {
         return yamlFile.close;
     }, []);
 
+    useEffect(() => {
+        if (namespace === _("default_namespace") || !url) {
+            console.warn("Namespace or URL is not set. Skipping WebSocket configuration.");
+            return;
+        }
+
+        const ros = new ROSLIB.Ros({ url });
+
+        ros.on('connection', () => {
+            console.log('Connected to Foxglove bridge');
+        });
+
+        ros.on('error', (error) => {
+            console.error('Error connecting to Foxglove bridge:', error);
+        });
+
+        ros.on('close', () => {
+            console.log('Connection to Foxglove bridge closed');
+        });
+
+        const diagnosticsTopic = new ROSLIB.Topic({
+            ros,
+            name: `/${namespace}/diagnostics_agg`,
+            messageType: "diagnostic_msgs/DiagnosticArray",
+        });
+
+        diagnosticsTopic.subscribe((message) => {
+            if (Array.isArray(message.status)) {
+                const formattedDiagnostics = message.status.map(({ name = 'N/A', message = 'N/A', level }) => ({
+                    name,
+                    message,
+                    level: level !== undefined ? level.toString() : 'N/A'
+                }));
+                setDiagnostics(formattedDiagnostics);
+            } else {
+                console.warn('Unexpected diagnostics data format:', message);
+            }
+        });
+
+        return () => {
+            diagnosticsTopic.unsubscribe();
+            ros.close();
+        };
+    }, [namespace, url]); // Re-run effect when namespace or url changes
+
     return (
         <Card>
             <CardTitle>ROS 2 Diagnostics</CardTitle>
@@ -83,6 +132,11 @@ export const Application = () => {
                 <Alert
                     variant="info"
                     title={ cockpit.format(_("WebSocket URL: $0"), url) }
+                />
+                <textarea
+                    readOnly
+                    value={diagnostics.map(d => `Name: ${d.name}, Message: ${d.message}, Level: ${d.level}`).join("\n")}
+                    style={{ width: "100%", height: "200px", marginTop: "1rem" }}
                 />
             </CardBody>
         </Card>

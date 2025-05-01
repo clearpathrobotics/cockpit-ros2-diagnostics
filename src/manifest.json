@@ -13,5 +13,7 @@
             ],
             "order": 105
         }
-    }
+    },
+
+    "content-security-policy": "connect-src 'self' ws://*:8765"
 }

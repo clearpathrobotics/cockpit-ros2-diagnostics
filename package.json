@@ -49,10 +49,15 @@
     "typescript": "5.8.3"
   },
   "dependencies": {
+    "@foxglove/rosmsg": "^5.0.4",
+    "@foxglove/rosmsg2-serialization": "^2.0.4",
+    "@foxglove/ws-protocol": "^0.8.0",
     "@patternfly/patternfly": "6.2.3",
     "@patternfly/react-core": "6.2.2",
     "@patternfly/react-icons": "6.2.2",
     "@patternfly/react-styles": "6.2.2",
+    "eventemitter3": "^5.0.1",
+    "isomorphic-ws": "^5.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   }
