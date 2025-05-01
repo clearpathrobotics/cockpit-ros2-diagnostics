@@ -29,6 +29,18 @@ export const Application = () => {
     const [namespace, setNamespace] = useState(_("default_namespace")); // Default namespace
 
     useEffect(() => {
+        // Fetch the IP address of the Cockpit instance
+        cockpit.transport.wait(() => {
+            const hostIp = cockpit.transport.host;
+            if (hostIp) {
+                setUrl(`ws://${hostIp}:8765`); // Update WebSocket URL with the host IP
+            } else {
+                console.warn(_("Unable to determine the host IP address."));
+            }
+        });
+    }, []);
+
+    useEffect(() => {
         const yamlFile = cockpit.file('/etc/clearpath/robot.yaml');
 
         const updateNamespace = (content) => {
@@ -67,6 +79,10 @@ export const Application = () => {
                 <Alert
                     variant="info"
                     title={ cockpit.format(_("Namespace: $0"), namespace) }
+                />
+                <Alert
+                    variant="info"
+                    title={ cockpit.format(_("WebSocket URL: $0"), url) }
                 />
             </CardBody>
         </Card>
