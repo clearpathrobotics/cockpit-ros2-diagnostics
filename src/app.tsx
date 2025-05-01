@@ -26,12 +26,38 @@ import cockpit from 'cockpit';
 const _ = cockpit.gettext;
 
 export const Application = () => {
-    const [hostname, setHostname] = useState(_("Unknown"));
+    const [namespace, setNamespace] = useState(_("default_namespace")); // Default namespace
 
     useEffect(() => {
-        const hostname = cockpit.file('/etc/hostname');
-        hostname.watch(content => setHostname(content?.trim() ?? ""));
-        return hostname.close;
+        const yamlFile = cockpit.file('/etc/clearpath/robot.yaml');
+
+        const updateNamespace = (content) => {
+            if (content) {
+                const trimmedContent = content.trim();
+
+                // Filter out commented lines
+                const uncommentedLines = trimmedContent
+                        .split("\n")
+                        .filter(line => !line.trim().startsWith("#"))
+                        .join("\n");
+
+                // Extract namespace or serial_number, ensuring serial_number has no leading white spaces
+                const namespaceMatch = uncommentedLines.match(/^\s*namespace:\s*(\S+)/m);
+                const serialNumberMatch = uncommentedLines.match(/^serial_number:\s*(\S+)/m); // No leading white spaces for serial_number
+                if (namespaceMatch) {
+                    setNamespace(namespaceMatch[1].replace(/^\/|\/$/g, "")); // Trim leading and trailing slashes
+                } else if (serialNumberMatch) {
+                    setNamespace(serialNumberMatch[1].replace(/-/g, "_").replace(/^\/|\/$/g, "")); // Replace dashes and trim slashes
+                } else {
+                    console.warn(_("Neither namespace nor serial_number found in robot.yaml"));
+                }
+            } else {
+                console.warn(_("robot.yaml content is empty or null"));
+            }
+        };
+
+        yamlFile.watch(updateNamespace);
+        return yamlFile.close;
     }, []);
 
     return (
@@ -40,7 +66,7 @@ export const Application = () => {
             <CardBody>
                 <Alert
                     variant="info"
-                    title={ cockpit.format(_("Running on $0"), hostname) }
+                    title={ cockpit.format(_("Namespace: $0"), namespace) }
                 />
             </CardBody>
         </Card>
