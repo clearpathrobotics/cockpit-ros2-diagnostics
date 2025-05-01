@@ -27,8 +27,32 @@ import * as ROSLIB from "./roslib/index";
 
 const _ = cockpit.gettext;
 
+const DEFAULT_NAMESPACE = "default_namespace";
+
+const sanitizeNamespace = (namespace: string): string => {
+    const originalNamespace = namespace;
+
+    let sanitizedNamespace = namespace
+            .replace(/[^a-zA-Z0-9_/]/g, "") // Remove invalid characters
+            .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
+            .replace(/_+/g, "_") // Replace consecutive underscores with a single underscore
+            .replace(/^\/|\/$/g, "") // Trim leading and trailing slashes
+            .replace(/^\d+/, ""); // Drop leading numbers prior to the first letter or underscore
+
+    // Add a leading slash only if the sanitized namespace is not blank
+    if (sanitizedNamespace) {
+        sanitizedNamespace = "/" + sanitizedNamespace;
+    }
+
+    if (originalNamespace.replace(/^\/|\/$/g, "") !== sanitizedNamespace.replace(/^\/|\/$/g, "")) {
+        console.warn(`Invalid namespace: ${originalNamespace}, trying to use: ${sanitizedNamespace}`);
+    }
+
+    return sanitizedNamespace;
+};
+
 export const Application = () => {
-    const [namespace, setNamespace] = useState(_("default_namespace")); // Default namespace
+    const [namespace, setNamespace] = useState(DEFAULT_NAMESPACE); // Default namespace
     const [url, setUrl] = useState<string>("");
     const [diagnostics, setDiagnostics] = useState([]);
 
@@ -58,12 +82,12 @@ export const Application = () => {
                         .join("\n");
 
                 // Extract namespace or serial_number, ensuring serial_number has no leading white spaces
-                const namespaceMatch = uncommentedLines.match(/^\s*namespace:\s*(\S+)/m);
-                const serialNumberMatch = uncommentedLines.match(/^serial_number:\s*(\S+)/m); // No leading white spaces for serial_number
+                const namespaceMatch = uncommentedLines.match(/^[ \t]*namespace:[ \t]*(\S+)/ms);
+                const serialNumberMatch = uncommentedLines.match(/^serial_number:[ \t]*(\S+)/ms); // No leading white spaces for serial_number
                 if (namespaceMatch) {
-                    setNamespace(namespaceMatch[1].replace(/^\/|\/$/g, "")); // Trim leading and trailing slashes
+                    setNamespace(sanitizeNamespace(namespaceMatch[1]));
                 } else if (serialNumberMatch) {
-                    setNamespace(serialNumberMatch[1].replace(/-/g, "_").replace(/^\/|\/$/g, "")); // Replace dashes and trim slashes
+                    setNamespace(sanitizeNamespace(serialNumberMatch[1]));
                 } else {
                     console.warn(_("Neither namespace nor serial_number found in robot.yaml"));
                 }
@@ -77,7 +101,7 @@ export const Application = () => {
     }, []);
 
     useEffect(() => {
-        if (namespace === _("default_namespace") || !url) {
+        if (namespace === DEFAULT_NAMESPACE || !url) {
             console.warn("Namespace or URL is not set. Skipping WebSocket configuration.");
             return;
         }
@@ -127,11 +151,11 @@ export const Application = () => {
             <CardBody>
                 <Alert
                     variant="info"
-                    title={ cockpit.format(_("Namespace: $0"), namespace) }
+                    title={ cockpit.format("Namespace: $0", namespace) }
                 />
                 <Alert
                     variant="info"
-                    title={ cockpit.format(_("WebSocket URL: $0"), url) }
+                    title={ cockpit.format("WebSocket URL: $0", url) }
                 />
                 <textarea
                     readOnly
