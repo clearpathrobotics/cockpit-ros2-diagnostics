@@ -39,7 +39,7 @@ const sanitizeNamespace = (namespace: string): string => {
             .replace(/^\/|\/$/g, "") // Trim leading and trailing slashes
             .replace(/^\d+/, ""); // Drop leading numbers prior to the first letter or underscore
 
-    // Add a leading slash only if the sanitized namespace is not blank
+    // Add a leading slash if the sanitized namespace is not empty
     if (sanitizedNamespace) {
         sanitizedNamespace = "/" + sanitizedNamespace;
     }
@@ -49,16 +49,16 @@ const sanitizeNamespace = (namespace: string): string => {
 
 export const Application = () => {
     const [namespace, setNamespace] = useState(DEFAULT_NAMESPACE); // Default namespace
-    const [url, setUrl] = useState<string | null>(null);
-    const [diagnostics, setDiagnostics] = useState([]);
-    const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
+    const [url, setUrl] = useState<string | null>(null); // WebSocket URL
+    const [diagnostics, setDiagnostics] = useState([]); // Diagnostics data
+    const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null); // Error message for invalid namespace
 
     useEffect(() => {
-        // Fetch the IP address of the Cockpit instance
+        // Fetch the IP address of the Cockpit instance and set the WebSocket URL
         cockpit.transport.wait(() => {
             const hostIp = cockpit.transport.host;
             if (hostIp) {
-                setUrl(`ws://${hostIp}:8765`); // Update WebSocket URL with the host IP
+                setUrl(`ws://${hostIp}:8765`); // Construct WebSocket URL using the host IP
             } else {
                 console.warn(_("Unable to determine the host IP address."));
             }
@@ -96,6 +96,7 @@ export const Application = () => {
                     return;
                 }
 
+                // Check if the sanitized namespace differs from the original
                 if (originalNamespace.replace(/^\/|\/$/g, "") !== sanitizedNamespace.replace(/^\/|\/$/g, "")) {
                     const message = `Invalid namespace: "${originalNamespace}", trying to connect using: "${sanitizedNamespace}"`;
                     console.warn(message);
@@ -122,14 +123,14 @@ export const Application = () => {
             return;
         }
         if (!url) {
-            console.warn("Websocket URL is not set correctly. Skipping WebSocket configuration.");
+            console.warn("WebSocket URL is not set correctly. Skipping WebSocket configuration.");
             return;
         }
 
-        const ros = new ROSLIB.Ros({ url });
+        const ros = new ROSLIB.Ros({ url }); // Initialize ROS connection
 
         ros.on('connection', () => {
-            console.log('Connected to Foxglove bridge');
+            console.log('Connected to Foxglove bridge at ' + url);
         });
 
         ros.on('error', (error) => {
@@ -146,7 +147,10 @@ export const Application = () => {
             messageType: "diagnostic_msgs/DiagnosticArray",
         });
 
+        console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
+
         diagnosticsTopic.subscribe((message) => {
+            // Process incoming diagnostics messages
             if (Array.isArray(message.status)) {
                 const formattedDiagnostics = message.status.map(({ name = 'N/A', message = 'N/A', level }) => ({
                     name,
@@ -163,7 +167,7 @@ export const Application = () => {
             diagnosticsTopic.unsubscribe();
             ros.close();
         };
-    }, [namespace, url]); // Re-run effect when namespace or url changes
+    }, [namespace, url]); // Re-run effect when namespace or URL changes
 
     return (
         <Card>
@@ -172,7 +176,7 @@ export const Application = () => {
                 {invalidNamespaceMessage && (
                     <Alert
                         variant="danger"
-                        title={invalidNamespaceMessage}
+                        title={invalidNamespaceMessage} // Display error message if namespace is invalid
                     />
                 )}
                 <Alert
