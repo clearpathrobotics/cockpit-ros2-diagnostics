@@ -17,11 +17,14 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
+import cockpit from 'cockpit';
 import React, { useEffect, useState } from 'react';
 import { Alert } from "@patternfly/react-core/dist/esm/components/Alert/index.js";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
-
-import cockpit from 'cockpit';
+import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
+import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
+import { Table, Thead, Tr, Th, Tbody, Td } from "@patternfly/react-table";
+import { ExclamationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon } from "@patternfly/react-icons";
 
 import * as ROSLIB from "./roslib/index";
 
@@ -30,7 +33,6 @@ const _ = cockpit.gettext;
 const DEFAULT_NAMESPACE = "default_namespace";
 
 const sanitizeNamespace = (namespace: string): string => {
-    const originalNamespace = namespace;
 
     let sanitizedNamespace = namespace
             .replace(/[^a-zA-Z0-9_/]/g, "") // Remove invalid characters
@@ -45,6 +47,79 @@ const sanitizeNamespace = (namespace: string): string => {
     }
 
     return sanitizedNamespace;
+};
+
+// Renders a table of diagnostic messages filtered by severity level
+const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: any[], variant: "danger" | "warning" }) => {
+    const levelFilter = variant === "danger"
+        ? (level: number) => level >= 2 // Errors: level >= 2
+        : (level: number) => level === 1; // Warnings: level == 1
+    const Icon = variant === "danger" ? ExclamationCircleIcon : ExclamationTriangleIcon;
+    const iconColor = variant === "danger"
+        ? "var(--pf-t--global--icon--color--status--danger--default)"
+        : "var(--pf-t--global--icon--color--status--warning--default)";
+
+    // Create a Set of all parent paths to exclude them from the table
+    const parentPaths = new Set(
+        diagnostics
+                .map((d) => d.name)
+                .filter((name) => name.includes("/"))
+                .map((name) => name.substring(0, name.lastIndexOf("/")))
+    );
+
+    // Filter diagnostics based on the severity level and exclude parent paths
+    const filteredDiagnostics = diagnostics
+            .filter((d) => levelFilter(parseInt(d.level, 10))) // Filter by level
+            .filter((d) => !parentPaths.has(d.name)); // Exclude diagnostics that are parent paths
+
+    return (
+        <Alert
+            variant={variant}
+            title={variant === "danger" ? _("Errors") : _("Warnings")}
+            isInline
+        >
+            <Table aria-label={`${variant === "danger" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
+                <Thead>
+                    <Tr>
+                        <Th>Name</Th>
+                        <Th>Message</Th>
+                    </Tr>
+                </Thead>
+                <Tbody>
+                    {filteredDiagnostics.map((d, index) => {
+                        // Extract the path and name from the diagnostic name
+                        const [path, name] = (() => {
+                            const colonIndex = d.name.indexOf(":");
+                            if (colonIndex !== -1) {
+                                return [
+                                    d.name.substring(0, colonIndex),
+                                    d.name.substring(colonIndex + 1).trim() || d.name,
+                                ];
+                            }
+                            const lastSlashIndex = d.name.lastIndexOf("/");
+                            return [
+                                d.name,
+                                d.name.substring(lastSlashIndex + 1) || d.name,
+                            ];
+                        })();
+
+                        return (
+                            <Tr key={index}>
+                                <Td>
+                                    <div style={{ fontWeight: "bold" }}>
+                                        {React.createElement(Icon, { style: { color: iconColor, marginRight: "0.5rem" } })}
+                                        {name || "N/A"}
+                                    </div>
+                                    <div>{path || "N/A"}</div>
+                                </Td>
+                                <Td>{d.message || "N/A"}</Td>
+                            </Tr>
+                        );
+                    })}
+                </Tbody>
+            </Table>
+        </Alert>
+    );
 };
 
 export const Application = () => {
@@ -101,11 +176,9 @@ export const Application = () => {
                     const message = `Invalid namespace: "${originalNamespace}", trying to connect using: "${sanitizedNamespace}"`;
                     console.warn(message);
                     setInvalidNamespaceMessage(message);
-                }
-                else {
+                } else {
                     setInvalidNamespaceMessage(null);
                 }
-
             } else {
                 const message = _("robot.yaml content is empty or null");
                 console.warn(message);
@@ -170,29 +243,32 @@ export const Application = () => {
     }, [namespace, url]); // Re-run effect when namespace or URL changes
 
     return (
-        <Card>
-            <CardTitle>ROS 2 Diagnostics</CardTitle>
-            <CardBody>
-                {invalidNamespaceMessage && (
-                    <Alert
-                        variant="danger"
-                        title={invalidNamespaceMessage} // Display error message if namespace is invalid
-                    />
-                )}
-                <Alert
-                    variant="info"
-                    title={ cockpit.format("Namespace: $0", namespace) }
-                />
-                <Alert
-                    variant="info"
-                    title={ cockpit.format("WebSocket URL: $0", url) }
-                />
-                <textarea
-                    readOnly
-                    value={diagnostics.map(d => `Name: ${d.name}, Message: ${d.message}, Level: ${d.level}`).join("\n")}
-                    style={{ width: "100%", height: "200px", marginTop: "1rem" }}
-                />
-            </CardBody>
-        </Card>
+        <Page id="ros2-diag" className='no-masthead-sidebar'>
+            <PageSection>
+                <Stack hasGutter>
+                    <Card>
+                        <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
+                        <CardBody>
+                            {invalidNamespaceMessage && (
+                                <Alert
+                                    variant="danger"
+                                    title={invalidNamespaceMessage} // Display error message if namespace is invalid
+                                />
+                            )}
+                            <Alert
+                                variant="info"
+                                title={cockpit.format("Namespace: $0", namespace)}
+                            />
+                            <Alert
+                                variant="info"
+                                title={cockpit.format("WebSocket URL: $0", url)}
+                            />
+                        </CardBody>
+                    </Card>
+                    <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
+                    <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
+                </Stack>
+            </PageSection>
+        </Page>
     );
 };
