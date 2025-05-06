@@ -68,14 +68,14 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
         let currentLevel = root;
 
         parts.forEach((part, index) => {
-            if (part === "") {
-                return; // Skip empty parts
-            }
+            if (!part) return; // Skip empty parts
+
             let existingEntry = currentLevel.find(entry => entry.name === part);
 
             if (!existingEntry) {
+                const [baseName, suffix] = part.split(":");
                 existingEntry = {
-                    name: index === parts.length - 1 && part.includes(":") ? part.split(":")[1] : part,
+                    name: index === parts.length - 1 && suffix ? suffix : baseName,
                     path: parts.slice(0, index + 1).join("/")
                             .split(":")[0],
                     message: "",
@@ -88,10 +88,10 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
             }
 
             if (index === parts.length - 1) {
-                existingEntry.message = message;
-                existingEntry.severity_level = level;
-                existingEntry.hardware_id = hardware_id;
-                existingEntry.values = values;
+                existingEntry.message = message || "";
+                existingEntry.severity_level = level ?? -1;
+                existingEntry.hardware_id = hardware_id || null;
+                existingEntry.values = values || null;
             }
 
             currentLevel = existingEntry.children;
@@ -102,29 +102,21 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
 };
 
 // Helper function to collect leaf nodes
-const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] => {
-    const leafNodes: DiagnosticsEntry[] = [];
-    entries.forEach(entry => {
-        if (entry.children.length === 0) {
-            leafNodes.push(entry);
-        } else {
-            leafNodes.push(...collectLeafNodes(entry.children));
-        }
-    });
-    return leafNodes;
-};
+const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] =>
+    entries.flatMap(entry =>
+        entry.children.length === 0 ? [entry] : collectLeafNodes(entry.children)
+    );
 
 // Renders a table of diagnostic messages filtered by severity level
 const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEntry[], variant: "danger" | "warning" }) => {
-    const levelFilter = variant === "danger"
-        ? (level: number) => level >= 2 // Errors: level >= 2
-        : (level: number) => level === 1; // Warnings: level == 1
-    const icon =
-        variant === "danger"
-            ? <Icon status="danger"> <ExclamationCircleIcon /> </Icon>
-            : <Icon status="warning"> <ExclamationTriangleIcon /> </Icon>;
+    const levelFilter = (level: number) =>
+        variant === "danger" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
 
-    const filteredDiagnostics = collectLeafNodes(diagnostics).filter((d) => levelFilter(d.severity_level));
+    const icon = variant === "danger"
+        ? <Icon status="danger"><ExclamationCircleIcon /></Icon>
+        : <Icon status="warning"><ExclamationTriangleIcon /></Icon>;
+
+    const filteredDiagnostics = collectLeafNodes(diagnostics).filter(d => levelFilter(d.severity_level));
 
     return (
         <Alert
@@ -135,8 +127,8 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
             <Table aria-label={`${variant === "danger" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
                 <Thead>
                     <Tr>
-                        <Th>Name</Th>
-                        <Th>Message</Th>
+                        <Th>{_("Name")}</Th>
+                        <Th>{_("Message")}</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
@@ -144,11 +136,11 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
                         <Tr key={index}>
                             <Td>
                                 <Title headingLevel="h5" size="sm">
-                                    {icon} <span style={{ marginLeft: '0.5rem' }}>{d.name || "N/A"}</span>
+                                    {icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
                                 </Title>
-                                {d.path || "N/A"}
+                                {d.path || _("N/A")}
                             </Td>
-                            <Td>{d.message || "N/A"}</Td>
+                            <Td>{d.message || _("N/A")}</Td>
                         </Tr>
                     ))}
                 </Tbody>
@@ -159,27 +151,26 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
 
 // Renders an expandable TreeTable of diagnostic messages
 const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[] }) => {
+    // By default have the first row expanded
+    const [expandedRows, setExpandedRows] = useState<string[]>([diagnostics[0]?.name]);
+
     if (diagnostics.length === 0) {
         return (
             <Card>
                 <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
                 <CardBody>
                     <Alert variant="warning" isPlain isInline title={_("No diagnostics available")}>
-                        { _("Attempting to connect to the diagnostics topic...") }
+                        {_("Attempting to connect to the diagnostics topic...")}
                     </Alert>
                 </CardBody>
             </Card>
         );
     }
 
-    // By default have the first row expanded
-    const [expandedRows, setExpandedRows] = useState<string[]>([diagnostics[0]?.name]);
-
     const columnNames = {
-        name: 'Name',
-        path: 'Path',
-        message: 'Message',
-        severity_level: 'Severity level'
+        name: _("Name"),
+        path: _("Path"),
+        message: _("Message"),
     };
 
     const renderRows = (
@@ -189,51 +180,47 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
         rowIndex = 0,
         isHidden = false
     ): React.ReactNode[] => {
-        if (!diag) {
-            return [];
-        }
-        const isExpanded = expandedRows.includes(diag.name);
-        const icon =
-            diag.severity_level === 0
-                ? <Icon status="success"> <CheckCircleIcon /> </Icon>
-                : diag.severity_level === 1
-                    ? <Icon status="warning"> <ExclamationTriangleIcon /> </Icon>
-                    : <Icon status="danger"> <ExclamationCircleIcon /> </Icon>;
+        if (!diag) return [];
 
-        const treeRow: TdProps['treeRow'] = {
+        const isExpanded = expandedRows.includes(diag.name);
+        const icon = diag.severity_level === 0
+            ? <Icon status="success"><CheckCircleIcon /></Icon>
+            : diag.severity_level === 1
+                ? <Icon status="warning"><ExclamationTriangleIcon /></Icon>
+                : <Icon status="danger"><ExclamationCircleIcon /></Icon>;
+
+        const treeRow: TdProps["treeRow"] = {
             onCollapse: () =>
-                setExpandedRows((prevExpanded) => {
-                    const otherExpandedRows = prevExpanded.filter((name) => name !== diag.name);
-                    return isExpanded ? otherExpandedRows : [...otherExpandedRows, diag.name];
-                }),
+                setExpandedRows(prevExpanded =>
+                    prevExpanded.includes(diag.name)
+                        ? prevExpanded.filter(name => name !== diag.name)
+                        : [...prevExpanded, diag.name]
+                ),
             rowIndex,
             props: {
                 isExpanded,
                 isHidden,
-                'aria-level': indentLevel,
-                'aria-posinset': posinset,
-                'aria-setsize': diag.children ? diag.children.length : 0,
-                icon
-            }
+                "aria-level": indentLevel,
+                "aria-posinset": posinset,
+                "aria-setsize": diag.children.length,
+                icon,
+            },
         };
 
-        const childRows =
-          diag.children && diag.children.length
-              ? renderRows(diag.children, indentLevel + 1, 1, rowIndex + 1, !isExpanded || isHidden)
-              : [];
+        const childRows = diag.children.length
+            ? renderRows(diag.children, indentLevel + 1, 1, rowIndex + 1, !isExpanded || isHidden)
+            : [];
 
         return [
             <TreeRowWrapper key={diag.name} row={{ props: treeRow.props }}>
                 <Td dataLabel={columnNames.name} treeRow={treeRow}>
-                    <Title headingLevel="h5" size="sm">
-                        {diag.name}
-                    </Title>
+                    <Title headingLevel="h5" size="sm">{diag.name}</Title>
                     {diag.path}
                 </Td>
                 <Td dataLabel={columnNames.message}>{diag.message}</Td>
             </TreeRowWrapper>,
             ...childRows,
-            ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden)
+            ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden),
         ];
     };
 
@@ -241,7 +228,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
         <Card>
             <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
             <CardBody>
-                <Table isTreeTable variant="compact" aria-label="Diagnostics Tree Table" borders={false}>
+                <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
                     <Thead>
                         <Tr>
                             <Th>{columnNames.name}</Th>
@@ -333,47 +320,63 @@ export const Application = () => {
             return;
         }
 
-        const ros = new ROSLIB.Ros({ url }); // Initialize ROS connection
+        let retryCount = 0;
+        const maxRetries = 5;
+        const retryDelay = 3000; // 3 seconds
 
-        ros.on('connection', () => {
-            console.log('Connected to Foxglove bridge at ' + url);
-        });
+        const connectToWebSocket = () => {
+            const ros = new ROSLIB.Ros({ url });
 
-        ros.on('error', (error) => {
-            console.error('Error connecting to Foxglove bridge:', error);
-        });
+            ros.on('connection', () => {
+                console.log('Connected to Foxglove bridge at ' + url);
+                retryCount = 0; // Reset retry count on successful connection
+            });
 
-        ros.on('close', () => {
-            console.log('Connection to Foxglove bridge closed');
-        });
+            ros.on('error', (error) => {
+                console.error('Error connecting to Foxglove bridge:', error);
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    console.log(`Retrying WebSocket connection (${retryCount}/${maxRetries})...`);
+                    setTimeout(connectToWebSocket, retryDelay);
+                } else {
+                    console.error("Max retries reached. Could not connect to WebSocket.");
+                }
+            });
 
-        const diagnosticsTopic = new ROSLIB.Topic({
-            ros,
-            name: `${namespace}/diagnostics_agg`,
-            messageType: "diagnostic_msgs/DiagnosticArray",
-        });
+            ros.on('close', () => {
+                console.log('Connection to Foxglove bridge closed');
+            });
 
-        console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
+            const diagnosticsTopic = new ROSLIB.Topic({
+                ros,
+                name: `${namespace}/diagnostics_agg`,
+                messageType: "diagnostic_msgs/DiagnosticArray",
+            });
 
-        diagnosticsTopic.subscribe((message) => {
-            // Process incoming diagnostics messages
-            if (Array.isArray(message.status)) {
-                const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level }) => ({
-                    name,
-                    message,
-                    level: level !== undefined ? level : -1,
-                })));
-                setDiagnostics(diagnosticsTree);
-            } else {
-                console.warn('Unexpected diagnostics data format:', message);
-            }
-        });
+            console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
 
-        return () => {
-            diagnosticsTopic.unsubscribe();
-            ros.close();
+            diagnosticsTopic.subscribe((message) => {
+                // Process incoming diagnostics messages
+                if (Array.isArray(message.status)) {
+                    const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level }) => ({
+                        name,
+                        message,
+                        level: level !== undefined ? level : -1,
+                    })));
+                    setDiagnostics(diagnosticsTree);
+                } else {
+                    console.warn('Unexpected diagnostics data format:', message);
+                }
+            });
+
+            return () => {
+                diagnosticsTopic.unsubscribe();
+                ros.close();
+            };
         };
-    }, [namespace, url]); // Re-run effect when namespace or URL changes
+
+        connectToWebSocket();
+    }, [namespace, url]);
 
     return (
         <Page id="ros2-diag" className='no-masthead-sidebar'>
