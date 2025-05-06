@@ -160,7 +160,7 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
 // Renders an expandable TreeTable of diagnostic messages
 const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[] }) => {
     // By default have the first row expanded
-    const [expandedRows, setExpandedRows] = useState<string[]>([diagnostics[0]?.name]);
+    const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
     if (diagnostics.length === 0) {
         return (
