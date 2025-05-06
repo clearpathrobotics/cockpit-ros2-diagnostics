@@ -122,6 +122,7 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
         <Alert
             variant={variant}
             title={variant === "danger" ? _("Errors") : _("Warnings")}
+            component='h2'
             isInline
         >
             <Table aria-label={`${variant === "danger" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
@@ -135,7 +136,7 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
                     {filteredDiagnostics.map((d, index) => (
                         <Tr key={index}>
                             <Td>
-                                <Title headingLevel="h5" size="sm">
+                                <Title headingLevel="h3" size="sm">
                                     {icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
                                 </Title>
                                 {d.path || _("N/A")}
@@ -157,7 +158,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
     if (diagnostics.length === 0) {
         return (
             <Card>
-                <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
+                <CardTitle>{_("All Diagnostics")}</CardTitle>
                 <CardBody>
                     <Alert variant="warning" isPlain isInline title={_("No diagnostics available")}>
                         {_("Attempting to connect to the diagnostics topic...")}
@@ -214,7 +215,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
         return [
             <TreeRowWrapper key={diag.name} row={{ props: treeRow.props }}>
                 <Td dataLabel={columnNames.name} treeRow={treeRow}>
-                    <Title headingLevel="h5" size="sm">{diag.name}</Title>
+                    <Title headingLevel="h3" size="sm">{diag.name}</Title>
                     {diag.path}
                 </Td>
                 <Td dataLabel={columnNames.message}>{diag.message}</Td>
@@ -226,7 +227,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
 
     return (
         <Card>
-            <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
+            <CardTitle>{_("All Diagnostics")}</CardTitle>
             <CardBody>
                 <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
                     <Thead>
@@ -387,6 +388,9 @@ export const Application = () => {
         <Page id="ros2-diag" className='no-masthead-sidebar'>
             <PageSection>
                 <Stack hasGutter>
+                    <Title headingLevel="h1" size="2xl">
+                        {_("ROS 2 Diagnostics")}
+                    </Title>
                     {invalidNamespaceMessage && (
                         <Alert
                             variant="danger"
