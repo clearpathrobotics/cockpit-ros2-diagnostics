@@ -387,25 +387,12 @@ export const Application = () => {
         <Page id="ros2-diag" className='no-masthead-sidebar'>
             <PageSection>
                 <Stack hasGutter>
-                    <Card>
-                        <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
-                        <CardBody>
-                            {invalidNamespaceMessage && (
-                                <Alert
-                                    variant="danger"
-                                    title={invalidNamespaceMessage} // Display error message if namespace is invalid
-                                />
-                            )}
-                            <Alert
-                                variant="info"
-                                title={cockpit.format("Namespace: $0", namespace)}
-                            />
-                            <Alert
-                                variant="info"
-                                title={cockpit.format("WebSocket URL: $0", url)}
-                            />
-                        </CardBody>
-                    </Card>
+                    {invalidNamespaceMessage && (
+                        <Alert
+                            variant="danger"
+                            title={invalidNamespaceMessage} // Display error message if namespace is invalid
+                        />
+                    )}
                     <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
                     <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
                     <DiagnosticsTreeTable diagnostics={diagnostics} />
