@@ -249,13 +249,18 @@ export const Application = () => {
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null); // Error message for invalid namespace
 
     useEffect(() => {
-        // Fetch the IP address of the Cockpit instance and set the WebSocket URL
+        // Fetch the IP address or hostname of the Cockpit instance and set the WebSocket URL
         cockpit.transport.wait(() => {
-            const hostIp = cockpit.transport.host;
-            if (hostIp) {
-                setUrl(`ws://${hostIp}:8765`); // Construct WebSocket URL using the host IP
-            } else {
-                console.warn(_("Unable to determine the host IP address."));
+            try {
+                const url = new URL(cockpit.transport.origin);
+                const hostIp = url.hostname; // Extract the hostname or IP from the origin
+                if (hostIp) {
+                    setUrl(`ws://${hostIp}:8765`); // Construct WebSocket URL using the host IP
+                } else {
+                    console.warn(_("Unable to determine the host IP address."));
+                }
+            } catch (error) {
+                console.error(_("Failed to parse Cockpit origin URL:"), error);
             }
         });
     }, []);
