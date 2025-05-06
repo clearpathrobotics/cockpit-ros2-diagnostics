@@ -24,7 +24,7 @@ import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/compo
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
 import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
 import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps } from "@patternfly/react-table";
-import { ExclamationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon } from "@patternfly/react-icons";
+import { ExclamationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon, QuestionCircleIcon } from "@patternfly/react-icons";
 
 import * as ROSLIB from "./roslib/index";
 
@@ -57,6 +57,7 @@ interface DiagnosticsEntry {
     hardware_id: string | null;
     values: { [key: string]: any } | null;
     children: DiagnosticsEntry[];
+    icon: JSX.Element | null; // Add icon property
 }
 
 // Helper function to build a nested DiagnosticsEntry tree
@@ -83,6 +84,7 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
                     hardware_id: null,
                     values: null,
                     children: [],
+                    icon: null, // Initialize icon as null
                 };
                 currentLevel.push(existingEntry);
             }
@@ -92,6 +94,15 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
                 existingEntry.severity_level = level ?? -1;
                 existingEntry.hardware_id = hardware_id || null;
                 existingEntry.values = values || null;
+
+                // Populate the icon based on severity level
+                existingEntry.icon = level === 3
+                    ? <Icon status="info"><QuestionCircleIcon /></Icon>
+                    : level === 2
+                        ? <Icon status="danger"><ExclamationCircleIcon /></Icon>
+                        : level === 1
+                            ? <Icon status="warning"><ExclamationTriangleIcon /></Icon>
+                            : <Icon status="success"><CheckCircleIcon /></Icon>;
             }
 
             currentLevel = existingEntry.children;
@@ -111,10 +122,6 @@ const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] =>
 const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEntry[], variant: "danger" | "warning" }) => {
     const levelFilter = (level: number) =>
         variant === "danger" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
-
-    const icon = variant === "danger"
-        ? <Icon status="danger"><ExclamationCircleIcon /></Icon>
-        : <Icon status="warning"><ExclamationTriangleIcon /></Icon>;
 
     const filteredDiagnostics = collectLeafNodes(diagnostics).filter(d => levelFilter(d.severity_level));
 
@@ -137,7 +144,7 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
                         <Tr key={index}>
                             <Td>
                                 <Title headingLevel="h3" size="sm">
-                                    {icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
+                                    {d.icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
                                 </Title>
                                 {d.path || _("N/A")}
                             </Td>
@@ -184,11 +191,6 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
         if (!diag) return [];
 
         const isExpanded = expandedRows.includes(diag.name);
-        const icon = diag.severity_level === 0
-            ? <Icon status="success"><CheckCircleIcon /></Icon>
-            : diag.severity_level === 1
-                ? <Icon status="warning"><ExclamationTriangleIcon /></Icon>
-                : <Icon status="danger"><ExclamationCircleIcon /></Icon>;
 
         const treeRow: TdProps["treeRow"] = {
             onCollapse: () =>
@@ -204,7 +206,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
                 "aria-level": indentLevel,
                 "aria-posinset": posinset,
                 "aria-setsize": diag.children.length,
-                icon,
+                icon: diag.icon,
             },
         };
 
