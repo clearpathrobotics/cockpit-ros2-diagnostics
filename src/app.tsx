@@ -19,11 +19,11 @@
 
 import cockpit from 'cockpit';
 import React, { useEffect, useState } from 'react';
-import { Alert } from "@patternfly/react-core/dist/esm/components/Alert/index.js";
+import { Alert, Icon, Title } from "@patternfly/react-core";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
 import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
-import { Table, Thead, Tr, Th, Tbody, Td } from "@patternfly/react-table";
+import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps } from "@patternfly/react-table";
 import { ExclamationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon } from "@patternfly/react-icons";
 
 import * as ROSLIB from "./roslib/index";
@@ -32,8 +32,8 @@ const _ = cockpit.gettext;
 
 const DEFAULT_NAMESPACE = "default_namespace";
 
+// Ensure that the namespace is valid and is formatted correctly to be concatenated with the topic name
 const sanitizeNamespace = (namespace: string): string => {
-
     let sanitizedNamespace = namespace
             .replace(/[^a-zA-Z0-9_/]/g, "") // Remove invalid characters
             .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
@@ -49,28 +49,82 @@ const sanitizeNamespace = (namespace: string): string => {
     return sanitizedNamespace;
 };
 
+interface DiagnosticsEntry {
+    name: string;
+    path: string;
+    message: string;
+    severity_level: number;
+    hardware_id: string | null;
+    values: { [key: string]: any } | null;
+    children: DiagnosticsEntry[];
+}
+
+// Helper function to build a nested DiagnosticsEntry tree
+const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
+    const root: DiagnosticsEntry[] = [];
+
+    diagnostics.forEach(({ name, message, level, hardware_id, values }) => {
+        const parts = name.split("/");
+        let currentLevel = root;
+
+        parts.forEach((part, index) => {
+            if (part === "") {
+                return; // Skip empty parts
+            }
+            let existingEntry = currentLevel.find(entry => entry.name === part);
+
+            if (!existingEntry) {
+                existingEntry = {
+                    name: index === parts.length - 1 && part.includes(":") ? part.split(":")[1] : part,
+                    path: parts.slice(0, index + 1).join("/")
+                            .split(":")[0],
+                    message: "",
+                    severity_level: -1,
+                    hardware_id: null,
+                    values: null,
+                    children: [],
+                };
+                currentLevel.push(existingEntry);
+            }
+
+            if (index === parts.length - 1) {
+                existingEntry.message = message;
+                existingEntry.severity_level = level;
+                existingEntry.hardware_id = hardware_id;
+                existingEntry.values = values;
+            }
+
+            currentLevel = existingEntry.children;
+        });
+    });
+
+    return root;
+};
+
+// Helper function to collect leaf nodes
+const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] => {
+    const leafNodes: DiagnosticsEntry[] = [];
+    entries.forEach(entry => {
+        if (entry.children.length === 0) {
+            leafNodes.push(entry);
+        } else {
+            leafNodes.push(...collectLeafNodes(entry.children));
+        }
+    });
+    return leafNodes;
+};
+
 // Renders a table of diagnostic messages filtered by severity level
-const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: any[], variant: "danger" | "warning" }) => {
+const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEntry[], variant: "danger" | "warning" }) => {
     const levelFilter = variant === "danger"
         ? (level: number) => level >= 2 // Errors: level >= 2
         : (level: number) => level === 1; // Warnings: level == 1
-    const Icon = variant === "danger" ? ExclamationCircleIcon : ExclamationTriangleIcon;
-    const iconColor = variant === "danger"
-        ? "var(--pf-t--global--icon--color--status--danger--default)"
-        : "var(--pf-t--global--icon--color--status--warning--default)";
+    const icon =
+        variant === "danger"
+            ? <Icon status="danger"> <ExclamationCircleIcon /> </Icon>
+            : <Icon status="warning"> <ExclamationTriangleIcon /> </Icon>;
 
-    // Create a Set of all parent paths to exclude them from the table
-    const parentPaths = new Set(
-        diagnostics
-                .map((d) => d.name)
-                .filter((name) => name.includes("/"))
-                .map((name) => name.substring(0, name.lastIndexOf("/")))
-    );
-
-    // Filter diagnostics based on the severity level and exclude parent paths
-    const filteredDiagnostics = diagnostics
-            .filter((d) => levelFilter(parseInt(d.level, 10))) // Filter by level
-            .filter((d) => !parentPaths.has(d.name)); // Exclude diagnostics that are parent paths
+    const filteredDiagnostics = collectLeafNodes(diagnostics).filter((d) => levelFilter(d.severity_level));
 
     return (
         <Alert
@@ -86,46 +140,125 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: any[], varian
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {filteredDiagnostics.map((d, index) => {
-                        // Extract the path and name from the diagnostic name
-                        const [path, name] = (() => {
-                            const colonIndex = d.name.indexOf(":");
-                            if (colonIndex !== -1) {
-                                return [
-                                    d.name.substring(0, colonIndex),
-                                    d.name.substring(colonIndex + 1).trim() || d.name,
-                                ];
-                            }
-                            const lastSlashIndex = d.name.lastIndexOf("/");
-                            return [
-                                d.name,
-                                d.name.substring(lastSlashIndex + 1) || d.name,
-                            ];
-                        })();
-
-                        return (
-                            <Tr key={index}>
-                                <Td>
-                                    <div style={{ fontWeight: "bold" }}>
-                                        {React.createElement(Icon, { style: { color: iconColor, marginRight: "0.5rem" } })}
-                                        {name || "N/A"}
-                                    </div>
-                                    <div>{path || "N/A"}</div>
-                                </Td>
-                                <Td>{d.message || "N/A"}</Td>
-                            </Tr>
-                        );
-                    })}
+                    {filteredDiagnostics.map((d, index) => (
+                        <Tr key={index}>
+                            <Td>
+                                <Title headingLevel="h5" size="sm">
+                                    {icon} <span style={{ marginLeft: '0.5rem' }}>{d.name || "N/A"}</span>
+                                </Title>
+                                {d.path || "N/A"}
+                            </Td>
+                            <Td>{d.message || "N/A"}</Td>
+                        </Tr>
+                    ))}
                 </Tbody>
             </Table>
         </Alert>
     );
 };
 
+// Renders an expandable TreeTable of diagnostic messages
+const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[] }) => {
+    if (diagnostics.length === 0) {
+        return (
+            <Card>
+                <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
+                <CardBody>
+                    <Alert variant="warning" isPlain isInline title={_("No diagnostics available")}>
+                        { _("Attempting to connect to the diagnostics topic...") }
+                    </Alert>
+                </CardBody>
+            </Card>
+        );
+    }
+
+    // By default have the first row expanded
+    const [expandedRows, setExpandedRows] = useState<string[]>([diagnostics[0]?.name]);
+
+    const columnNames = {
+        name: 'Name',
+        path: 'Path',
+        message: 'Message',
+        severity_level: 'Severity level'
+    };
+
+    const renderRows = (
+        [diag, ...remainingDiag]: DiagnosticsEntry[],
+        indentLevel = 1,
+        posinset = 1,
+        rowIndex = 0,
+        isHidden = false
+    ): React.ReactNode[] => {
+        if (!diag) {
+            return [];
+        }
+        const isExpanded = expandedRows.includes(diag.name);
+        const icon =
+            diag.severity_level === 0
+                ? <Icon status="success"> <CheckCircleIcon /> </Icon>
+                : diag.severity_level === 1
+                    ? <Icon status="warning"> <ExclamationTriangleIcon /> </Icon>
+                    : <Icon status="danger"> <ExclamationCircleIcon /> </Icon>;
+
+        const treeRow: TdProps['treeRow'] = {
+            onCollapse: () =>
+                setExpandedRows((prevExpanded) => {
+                    const otherExpandedRows = prevExpanded.filter((name) => name !== diag.name);
+                    return isExpanded ? otherExpandedRows : [...otherExpandedRows, diag.name];
+                }),
+            rowIndex,
+            props: {
+                isExpanded,
+                isHidden,
+                'aria-level': indentLevel,
+                'aria-posinset': posinset,
+                'aria-setsize': diag.children ? diag.children.length : 0,
+                icon
+            }
+        };
+
+        const childRows =
+          diag.children && diag.children.length
+              ? renderRows(diag.children, indentLevel + 1, 1, rowIndex + 1, !isExpanded || isHidden)
+              : [];
+
+        return [
+            <TreeRowWrapper key={diag.name} row={{ props: treeRow.props }}>
+                <Td dataLabel={columnNames.name} treeRow={treeRow}>
+                    <Title headingLevel="h5" size="sm">
+                        {diag.name}
+                    </Title>
+                    {diag.path}
+                </Td>
+                <Td dataLabel={columnNames.message}>{diag.message}</Td>
+            </TreeRowWrapper>,
+            ...childRows,
+            ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden)
+        ];
+    };
+
+    return (
+        <Card>
+            <CardTitle>{_("ROS 2 Diagnostics")}</CardTitle>
+            <CardBody>
+                <Table isTreeTable variant="compact" aria-label="Diagnostics Tree Table" borders={false}>
+                    <Thead>
+                        <Tr>
+                            <Th>{columnNames.name}</Th>
+                            <Th>{columnNames.message}</Th>
+                        </Tr>
+                    </Thead>
+                    <Tbody>{renderRows(diagnostics)}</Tbody>
+                </Table>
+            </CardBody>
+        </Card>
+    );
+};
+
 export const Application = () => {
     const [namespace, setNamespace] = useState(DEFAULT_NAMESPACE); // Default namespace
     const [url, setUrl] = useState<string | null>(null); // WebSocket URL
-    const [diagnostics, setDiagnostics] = useState([]); // Diagnostics data
+    const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null); // Error message for invalid namespace
 
     useEffect(() => {
@@ -225,12 +358,12 @@ export const Application = () => {
         diagnosticsTopic.subscribe((message) => {
             // Process incoming diagnostics messages
             if (Array.isArray(message.status)) {
-                const formattedDiagnostics = message.status.map(({ name = 'N/A', message = 'N/A', level }) => ({
+                const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level }) => ({
                     name,
                     message,
-                    level: level !== undefined ? level.toString() : 'N/A'
-                }));
-                setDiagnostics(formattedDiagnostics);
+                    level: level !== undefined ? level : -1,
+                })));
+                setDiagnostics(diagnosticsTree);
             } else {
                 console.warn('Unexpected diagnostics data format:', message);
             }
@@ -267,6 +400,7 @@ export const Application = () => {
                     </Card>
                     <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
                     <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
+                    <DiagnosticsTreeTable diagnostics={diagnostics} />
                 </Stack>
             </PageSection>
         </Page>
