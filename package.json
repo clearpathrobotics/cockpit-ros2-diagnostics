@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@foxglove/rosmsg": "^5.0.4",
-    "@foxglove/rosmsg2-serialization": "^2.0.4",
+    "@foxglove/rosmsg2-serialization": "^3.0.2",
     "@foxglove/ws-protocol": "^0.8.0",
     "@patternfly/patternfly": "6.2.3",
     "@patternfly/react-core": "6.2.2",
