@@ -280,7 +280,7 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
     const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
 
     const drawerPanel = (
-        <DrawerPanelContent isResizable defaultSize="35%">
+        <DrawerPanelContent isResizable defaultSize="35%" maxSize="50%" minSize="20%">
             {selectedEntry && (
                 <div style={{ padding: "1rem" }}>
                     <DrawerHead>
