@@ -76,11 +76,11 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
 
             if (!existingEntry) {
                 const [baseName, suffix] = part.split(":");
+                const path = parts.slice(0, index + 1).join("/").split(":")[0];
                 existingEntry = {
                     name: index === parts.length - 1 && suffix ? suffix : baseName,
-                    path: parts.slice(0, index + 1).join("/")
-                            .split(":")[0],
-                    rawName: name,
+                    path,
+                    rawName: path,
                     message: "",
                     severity_level: -1,
                     hardware_id: null,
@@ -95,6 +95,7 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
                 existingEntry.message = message || "";
                 existingEntry.severity_level = level ?? -1;
                 existingEntry.hardware_id = hardware_id || null;
+                existingEntry.rawName = name;
 
                 existingEntry.values = Array.isArray(values)
                     ? values.reduce((acc, { key, value }) => {
