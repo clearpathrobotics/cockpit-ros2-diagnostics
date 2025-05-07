@@ -432,8 +432,6 @@ export const Application = () => {
             return;
         }
 
-        let retryCount = 0;
-        const maxRetries = 5;
         const retryDelay = 3000; // 3 seconds
 
         const connectToWebSocket = () => {
@@ -441,18 +439,12 @@ export const Application = () => {
 
             ros.on('connection', () => {
                 console.log('Connected to Foxglove bridge at ' + url);
-                retryCount = 0; // Reset retry count on successful connection
             });
 
             ros.on('error', (error) => {
                 console.error('Error connecting to Foxglove bridge:', error);
-                if (retryCount < maxRetries) {
-                    retryCount++;
-                    console.log(`Retrying WebSocket connection (${retryCount}/${maxRetries})...`);
-                    setTimeout(connectToWebSocket, retryDelay);
-                } else {
-                    console.error("Max retries reached. Could not connect to WebSocket.");
-                }
+                console.log("Retrying WebSocket connection...");
+                setTimeout(connectToWebSocket, retryDelay); // Retry indefinitely
             });
 
             ros.on('close', () => {
