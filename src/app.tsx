@@ -245,16 +245,13 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
             : [];
 
         return [
-            <TreeRowWrapper key={diag.name} row={{ props: treeRow.props }}>
-                <Td
-                    dataLabel={_("Name")}
-                    treeRow={treeRow}
-                    onClick={(event) => {
-                        if (!event.defaultPrevented) {
-                            onRowClick(diag);
-                        }
-                    }}
-                >
+            <TreeRowWrapper
+                key={diag.rawName}
+                row={{ props: treeRow.props }}
+                isClickable
+                onClick={() => onRowClick(diag)}
+            >
+                <Td dataLabel={_("Name")} treeRow={treeRow}>
                     <Title headingLevel="h3" size="sm">{diag.name}</Title>
                     {diag.path}
                 </Td>
@@ -264,7 +261,8 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
             ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden),
         ];
     };
-        // Helper function to find the latest entry by path
+
+    // Helper function to find the latest entry by path
     const findEntryByRawName = (entries: DiagnosticsEntry[], rawName: string): DiagnosticsEntry | null => {
         for (const entry of entries) {
             if (entry.rawName === rawName) {
