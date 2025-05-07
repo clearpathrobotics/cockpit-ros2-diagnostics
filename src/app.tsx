@@ -19,7 +19,7 @@
 
 import cockpit from 'cockpit';
 import React, { useEffect, useState } from 'react';
-import { Alert, Icon, Title } from "@patternfly/react-core";
+import { Alert, Icon, Title, Drawer, DrawerContent, DrawerContentBody, DrawerPanelContent, DrawerHead, DrawerActions, DrawerCloseButton } from "@patternfly/react-core";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
 import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
@@ -52,12 +52,13 @@ const sanitizeNamespace = (namespace: string): string => {
 interface DiagnosticsEntry {
     name: string;
     path: string;
+    rawName: string;
     message: string;
     severity_level: number;
     hardware_id: string | null;
     values: { [key: string]: any } | null;
     children: DiagnosticsEntry[];
-    icon: JSX.Element | null; // Add icon property
+    icon: JSX.Element | null;
 }
 
 // Helper function to build a nested DiagnosticsEntry tree
@@ -79,6 +80,7 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
                     name: index === parts.length - 1 && suffix ? suffix : baseName,
                     path: parts.slice(0, index + 1).join("/")
                             .split(":")[0],
+                    rawName: name,
                     message: "",
                     severity_level: -1,
                     hardware_id: null,
@@ -93,7 +95,17 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
                 existingEntry.message = message || "";
                 existingEntry.severity_level = level ?? -1;
                 existingEntry.hardware_id = hardware_id || null;
-                existingEntry.values = values || null;
+
+                existingEntry.values = Array.isArray(values)
+                    ? values.reduce((acc, { key, value }) => {
+                        acc[key] = value;
+                        return acc;
+                    }, {})
+                    : values && typeof values === "object"
+                        ? Object.fromEntries(
+                            Object.entries(values).map(([key, value]) => [key, value])
+                        )
+                        : {};
 
                 // Populate the icon based on severity level
                 existingEntry.icon = level === 3
@@ -159,8 +171,23 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
 
 // Renders an expandable TreeTable of diagnostic messages
 const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[] }) => {
-    // By default have the first row expanded
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
+    const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Use rawName as identifier
+    const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
+
+    useEffect(() => {
+        if (selectedRawName && drawerRef.current) {
+            drawerRef.current.focus(); // Focus the drawer after it is rendered
+        }
+    }, [selectedRawName]);
+
+    const onRowClick = (entry: DiagnosticsEntry) => {
+        setSelectedRawName(entry.rawName);
+    };
+
+    const closeDrawer = () => {
+        setSelectedRawName(null);
+    };
 
     if (diagnostics.length === 0) {
         return (
@@ -193,12 +220,14 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
         const isExpanded = expandedRows.includes(diag.name);
 
         const treeRow: TdProps["treeRow"] = {
-            onCollapse: () =>
+            onCollapse: (event) => {
+                event.stopPropagation(); // Prevent triggering onClick when expanding/collapsing
                 setExpandedRows(prevExpanded =>
                     prevExpanded.includes(diag.name)
                         ? prevExpanded.filter(name => name !== diag.name)
                         : [...prevExpanded, diag.name]
-                ),
+                );
+            },
             rowIndex,
             props: {
                 isExpanded,
@@ -216,7 +245,15 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
 
         return [
             <TreeRowWrapper key={diag.name} row={{ props: treeRow.props }}>
-                <Td dataLabel={columnNames.name} treeRow={treeRow}>
+                <Td
+                    dataLabel={_("Name")}
+                    treeRow={treeRow}
+                    onClick={(event) => {
+                        if (!event.defaultPrevented) {
+                            onRowClick(diag);
+                        }
+                    }}
+                >
                     <Title headingLevel="h3" size="sm">{diag.name}</Title>
                     {diag.path}
                 </Td>
@@ -226,22 +263,90 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
             ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden),
         ];
     };
+        // Helper function to find the latest entry by path
+    const findEntryByRawName = (entries: DiagnosticsEntry[], rawName: string): DiagnosticsEntry | null => {
+        for (const entry of entries) {
+            if (entry.rawName === rawName) {
+                return entry;
+            }
+            const foundInChildren = findEntryByRawName(entry.children, rawName);
+            if (foundInChildren) {
+                return foundInChildren;
+            }
+        }
+        return null;
+    };
+
+    const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
+
+    const drawerPanel = (
+        <DrawerPanelContent isResizable defaultSize="35%">
+            {selectedEntry && (
+                <div style={{ padding: "1rem" }}>
+                    <DrawerHead>
+                        <span tabIndex={selectedEntry ? 0 : -1} ref={drawerRef}>
+                            Diagnostics Details
+                        </span>
+                        <DrawerActions>
+                            <DrawerCloseButton onClick={closeDrawer} />
+                        </DrawerActions>
+                    </DrawerHead>
+                    <Title headingLevel="h2" size="lg">{selectedEntry.icon} {selectedEntry.name}</Title>
+                    <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
+                    <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
+                    <p><strong>{_("Level")}:</strong> {
+                        selectedEntry.severity_level === 3
+                            ? _("STALE")
+                            : selectedEntry.severity_level === 2
+                                ? _("ERROR")
+                                : selectedEntry.severity_level === 1
+                                    ? _("WARNING")
+                                    : _("OK")
+                    }
+                    </p>
+                    <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
+                    {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
+                        <div>
+                            <br />
+                            <strong>{_("Values")}:</strong>
+                            <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
+                                <Tbody>
+                                    {Object.entries(selectedEntry.values).map(([key, value]) => (
+                                        <Tr key={key}>
+                                            <Td>{key}</Td>
+                                            <Td>{value}</Td>
+                                        </Tr>
+                                    ))}
+                                </Tbody>
+                            </Table>
+                        </div>
+                    )}
+                </div>
+            )}
+        </DrawerPanelContent>
+    );
 
     return (
-        <Card>
-            <CardTitle>{_("All Diagnostics")}</CardTitle>
-            <CardBody>
-                <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
-                    <Thead>
-                        <Tr>
-                            <Th>{columnNames.name}</Th>
-                            <Th>{columnNames.message}</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>{renderRows(diagnostics)}</Tbody>
-                </Table>
-            </CardBody>
-        </Card>
+        <Drawer isExpanded={!!selectedEntry} isInline>
+            <DrawerContent panelContent={drawerPanel}>
+                <DrawerContentBody style={{ marginRight: "1rem" }}>
+                    <Card>
+                        <CardTitle>{_("All Diagnostics")}</CardTitle>
+                        <CardBody>
+                            <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
+                                <Thead>
+                                    <Tr>
+                                        <Th>{_("Name")}</Th>
+                                        <Th>{_("Message")}</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>{renderRows(diagnostics)}</Tbody>
+                            </Table>
+                        </CardBody>
+                    </Card>
+                </DrawerContentBody>
+            </DrawerContent>
+        </Drawer>
     );
 };
 
@@ -366,10 +471,12 @@ export const Application = () => {
             diagnosticsTopic.subscribe((message) => {
                 // Process incoming diagnostics messages
                 if (Array.isArray(message.status)) {
-                    const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level }) => ({
+                    const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level, hardware_id, values }) => ({
                         name,
                         message,
                         level: level !== undefined ? level : -1,
+                        hardware_id,
+                        values,
                     })));
                     setDiagnostics(diagnosticsTree);
                 } else {
