@@ -475,13 +475,13 @@ export const Application = () => {
                 console.error('Error connecting to Foxglove bridge:', error);
                 console.log("Retrying WebSocket connection...");
                 setBridgeConnected(false);
-                setTimeout(connectToWebSocket, retryDelay); // Retry indefinitely
             });
 
             ros.on('close', () => {
                 setBridgeConnected(false);
                 console.log('Connection to Foxglove bridge closed');
                 setDiagnostics([]);
+                setTimeout(connectToWebSocket, retryDelay);
             });
 
             const diagnosticsTopic = new ROSLIB.Topic({
