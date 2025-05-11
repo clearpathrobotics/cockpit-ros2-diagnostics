@@ -19,12 +19,35 @@
 
 import cockpit from 'cockpit';
 import React, { useEffect, useState } from 'react';
-import { Alert, Icon, Title, Drawer, DrawerContent, DrawerContentBody, DrawerPanelContent, DrawerHead, DrawerActions, DrawerCloseButton } from "@patternfly/react-core";
+import {
+    Alert,
+    Bullseye,
+    Icon,
+    Title,
+    Drawer,
+    DrawerContent,
+    DrawerContentBody,
+    DrawerPanelContent,
+    DrawerHead,
+    DrawerActions,
+    DrawerCloseButton,
+    EmptyState,
+    EmptyStateVariant,
+    EmptyStateBody,
+    Spinner
+} from "@patternfly/react-core";
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
 import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
-import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps } from "@patternfly/react-table";
-import { ExclamationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon, QuestionCircleIcon } from "@patternfly/react-icons";
+import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps} from "@patternfly/react-table";
+import {
+    BanIcon,
+    CheckCircleIcon,
+    DisconnectedIcon,
+    ExclamationCircleIcon,
+    ExclamationTriangleIcon,
+    QuestionCircleIcon
+} from "@patternfly/react-icons";
 
 import * as ROSLIB from "./roslib/index";
 
@@ -171,7 +194,7 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
 };
 
 // Renders an expandable TreeTable of diagnostic messages
-const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[] }) => {
+const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnostics: DiagnosticsEntry[], bridgeConnected: boolean }) => {
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
     const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Use rawName as identifier
     const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
@@ -189,19 +212,6 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
     const closeDrawer = () => {
         setSelectedRawName(null);
     };
-
-    if (diagnostics.length === 0) {
-        return (
-            <Card>
-                <CardTitle>{_("All Diagnostics")}</CardTitle>
-                <CardBody>
-                    <Alert variant="warning" isPlain isInline title={_("No diagnostics available")}>
-                        {_("Attempting to connect to the diagnostics topic...")}
-                    </Alert>
-                </CardBody>
-            </Card>
-        );
-    }
 
     const columnNames = {
         name: _("Name"),
@@ -339,7 +349,25 @@ const DiagnosticsTreeTable = ({ diagnostics }: { diagnostics: DiagnosticsEntry[]
                                         <Th>{_("Message")}</Th>
                                     </Tr>
                                 </Thead>
-                                <Tbody>{renderRows(diagnostics)}</Tbody>
+                                <Tbody>
+                                    {renderRows(diagnostics)}
+                                    <Td colSpan={8}>
+                                        <Bullseye>
+                                            <EmptyState
+                                                headingLevel="h2"
+                                                titleText="Connecting"
+                                                icon={Spinner}
+                                                variant={EmptyStateVariant.sm}
+                                            >
+                                                <EmptyStateBody>
+                                                    { bridgeConnected
+                                                        ? _("Listening for the diagnostics topic...")
+                                                        : _("Attempting to connect to the Foxglove bridge...")}
+                                                </EmptyStateBody>
+                                            </EmptyState>
+                                        </Bullseye>
+                                    </Td>
+                                </Tbody>
                             </Table>
                         </CardBody>
                     </Card>
@@ -354,6 +382,7 @@ export const Application = () => {
     const [url, setUrl] = useState<string | null>(null); // WebSocket URL
     const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null); // Error message for invalid namespace
+    const [bridgeConnected, setBridgeConnected] = useState(false);
 
     useEffect(() => {
         // Fetch the IP address or hostname of the Cockpit instance and set the WebSocket URL
@@ -439,16 +468,20 @@ export const Application = () => {
 
             ros.on('connection', () => {
                 console.log('Connected to Foxglove bridge at ' + url);
+                setBridgeConnected(true);
             });
 
             ros.on('error', (error) => {
                 console.error('Error connecting to Foxglove bridge:', error);
                 console.log("Retrying WebSocket connection...");
+                setBridgeConnected(false);
                 setTimeout(connectToWebSocket, retryDelay); // Retry indefinitely
             });
 
             ros.on('close', () => {
+                setBridgeConnected(false);
                 console.log('Connection to Foxglove bridge closed');
+                setDiagnostics([]);
             });
 
             const diagnosticsTopic = new ROSLIB.Topic({
@@ -477,6 +510,7 @@ export const Application = () => {
 
             return () => {
                 diagnosticsTopic.unsubscribe();
+                setBridgeConnected(false);
                 ros.close();
             };
         };
@@ -499,7 +533,7 @@ export const Application = () => {
                     )}
                     <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
                     <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
-                    <DiagnosticsTreeTable diagnostics={diagnostics} />
+                    <DiagnosticsTreeTable diagnostics={diagnostics} bridgeConnected={bridgeConnected} />
                 </Stack>
             </PageSection>
         </Page>
