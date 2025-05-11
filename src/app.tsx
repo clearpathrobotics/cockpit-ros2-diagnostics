@@ -351,22 +351,24 @@ const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnostics: D
                                 </Thead>
                                 <Tbody>
                                     {renderRows(diagnostics)}
-                                    <Td colSpan={8}>
-                                        <Bullseye>
-                                            <EmptyState
-                                                headingLevel="h2"
-                                                titleText="Connecting"
-                                                icon={Spinner}
-                                                variant={EmptyStateVariant.sm}
-                                            >
-                                                <EmptyStateBody>
-                                                    { bridgeConnected
-                                                        ? _("Listening for the diagnostics topic...")
-                                                        : _("Attempting to connect to the Foxglove bridge...")}
-                                                </EmptyStateBody>
-                                            </EmptyState>
-                                        </Bullseye>
-                                    </Td>
+                                    <Tr>
+                                        <Td colSpan={2}>
+                                            <Bullseye>
+                                                <EmptyState
+                                                    headingLevel="h2"
+                                                    titleText="Connecting"
+                                                    icon={Spinner}
+                                                    variant={EmptyStateVariant.sm}
+                                                >
+                                                    <EmptyStateBody>
+                                                        { bridgeConnected
+                                                            ? _("Listening for the diagnostics topic...")
+                                                            : _("Attempting to connect to the Foxglove bridge...")}
+                                                    </EmptyStateBody>
+                                                </EmptyState>
+                                            </Bullseye>
+                                        </Td>
+                                    </Tr>
                                 </Tbody>
                             </Table>
                         </CardBody>
