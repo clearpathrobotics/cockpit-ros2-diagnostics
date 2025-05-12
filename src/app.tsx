@@ -39,7 +39,7 @@ import {
 import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
 import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
-import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps} from "@patternfly/react-table";
+import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps } from "@patternfly/react-table";
 import {
     BanIcon,
     CheckCircleIcon,
@@ -99,7 +99,8 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
 
             if (!existingEntry) {
                 const [baseName, suffix] = part.split(":");
-                const path = parts.slice(0, index + 1).join("/").split(":")[0];
+                const path = parts.slice(0, index + 1).join("/")
+                        .split(":")[0];
                 existingEntry = {
                     name: index === parts.length - 1 && suffix ? suffix : baseName,
                     path,
@@ -187,6 +188,26 @@ const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEn
                             <Td>{d.message || _("N/A")}</Td>
                         </Tr>
                     ))}
+                    {filteredDiagnostics.length === 0 && (
+                        <Tr>
+                            <Td colSpan={2}>
+                                <Bullseye>
+                                    <EmptyState
+                                        headingLevel="h2"
+                                        titleText={variant === "danger" ? _("No Errors") : _("No Warnings")}
+                                        icon={CheckCircleIcon}
+                                        variant={EmptyStateVariant.sm}
+                                    >
+                                        <EmptyStateBody>
+                                            {variant === "danger"
+                                                ? _("No errors found.")
+                                                : _("No warnings found.")}
+                                        </EmptyStateBody>
+                                    </EmptyState>
+                                </Bullseye>
+                            </Td>
+                        </Tr>
+                    )}
                 </Tbody>
             </Table>
         </Alert>
@@ -537,8 +558,12 @@ export const Application = () => {
                     )}
                     { !invalidNamespaceMessage && (
                         <>
-                            <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
-                            <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
+                            {diagnostics.length > 0 && (
+                                <>
+                                    <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
+                                    <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
+                                </>
+                            )}
                             <DiagnosticsTreeTable diagnostics={diagnostics} bridgeConnected={bridgeConnected} />
                         </>
                     )}
