@@ -431,8 +431,8 @@ export const Application = () => {
                     sanitizedNamespace = sanitizeNamespace(serialNumberMatch[1]);
                     setNamespace(sanitizedNamespace);
                 } else {
-                    console.warn(_("Neither namespace nor serial_number found in robot.yaml"));
-                    setInvalidNamespaceMessage(_("Neither namespace nor serial_number found in robot.yaml"));
+                    console.warn(_("Configuration Error: Neither namespace nor serial_number found in robot.yaml"));
+                    setInvalidNamespaceMessage(_("Configuration Error: Neither namespace nor serial_number found in robot.yaml"));
                     return;
                 }
 
@@ -445,7 +445,7 @@ export const Application = () => {
                     setInvalidNamespaceMessage(null);
                 }
             } else {
-                const message = _("robot.yaml content is empty or null");
+                const message = _("Configuration Error: 'robot.yaml' file not found or empty");
                 console.warn(message);
                 setInvalidNamespaceMessage(message);
             }
@@ -535,9 +535,13 @@ export const Application = () => {
                             title={invalidNamespaceMessage} // Display error message if namespace is invalid
                         />
                     )}
-                    <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
-                    <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
-                    <DiagnosticsTreeTable diagnostics={diagnostics} bridgeConnected={bridgeConnected} />
+                    { !invalidNamespaceMessage && (
+                        <>
+                            <DiagnosticsTable diagnostics={diagnostics} variant="danger" />
+                            <DiagnosticsTable diagnostics={diagnostics} variant="warning" />
+                            <DiagnosticsTreeTable diagnostics={diagnostics} bridgeConnected={bridgeConnected} />
+                        </>
+                    )}
                 </Stack>
             </PageSection>
         </Page>
