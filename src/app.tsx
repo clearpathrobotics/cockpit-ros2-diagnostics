@@ -17,39 +17,28 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-import cockpit from 'cockpit';
 import React, { useEffect, useState } from 'react';
+
 import {
     Alert,
-    Bullseye,
     Icon,
+    Page,
+    PageSection,
+    Stack,
     Title,
-    Drawer,
-    DrawerContent,
-    DrawerContentBody,
-    DrawerPanelContent,
-    DrawerHead,
-    DrawerActions,
-    DrawerCloseButton,
-    EmptyState,
-    EmptyStateVariant,
-    EmptyStateBody,
-    Spinner
 } from "@patternfly/react-core";
-import { Card, CardBody, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
-import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page";
-import { Stack } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
-import { Table, Thead, Tr, Th, Tbody, Td, TreeRowWrapper, TdProps } from "@patternfly/react-table";
 import {
-    BanIcon,
     CheckCircleIcon,
-    DisconnectedIcon,
     ExclamationCircleIcon,
     ExclamationTriangleIcon,
     QuestionCircleIcon
 } from "@patternfly/react-icons";
 
+import cockpit from 'cockpit';
 import * as ROSLIB from "./roslib/index";
+import { DiagnosticsEntry } from "./interfaces";
+import { DiagnosticsTable } from "./components/DiagnosticsTable";
+import { DiagnosticsTreeTable } from "./components/DiagnosticsTreeTable";
 
 const _ = cockpit.gettext;
 
@@ -71,18 +60,6 @@ const sanitizeNamespace = (namespace: string): string => {
 
     return sanitizedNamespace;
 };
-
-interface DiagnosticsEntry {
-    name: string;
-    path: string;
-    rawName: string;
-    message: string;
-    severity_level: number;
-    hardware_id: string | null;
-    values: { [key: string]: any } | null;
-    children: DiagnosticsEntry[];
-    icon: JSX.Element | null;
-}
 
 // Helper function to build a nested DiagnosticsEntry tree
 const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
@@ -147,259 +124,6 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
     });
 
     return root;
-};
-
-// Helper function to collect leaf nodes
-const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] =>
-    entries.flatMap(entry =>
-        entry.children.length === 0 ? [entry] : collectLeafNodes(entry.children)
-    );
-
-// Renders a table of diagnostic messages filtered by severity level
-const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEntry[], variant: "danger" | "warning" }) => {
-    const levelFilter = (level: number) =>
-        variant === "danger" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
-
-    const filteredDiagnostics = collectLeafNodes(diagnostics).filter(d => levelFilter(d.severity_level));
-
-    return (
-        <Alert
-            variant={variant}
-            title={variant === "danger" ? _("Errors") : _("Warnings")}
-            component='h2'
-            isInline
-        >
-            <Table aria-label={`${variant === "danger" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
-                <Thead>
-                    <Tr>
-                        <Th>{_("Name")}</Th>
-                        <Th>{_("Message")}</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {filteredDiagnostics.map((d, index) => (
-                        <Tr key={index}>
-                            <Td>
-                                <Title headingLevel="h3" size="sm">
-                                    {d.icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
-                                </Title>
-                                {d.path || _("N/A")}
-                            </Td>
-                            <Td>{d.message || _("N/A")}</Td>
-                        </Tr>
-                    ))}
-                    {filteredDiagnostics.length === 0 && (
-                        <Tr>
-                            <Td colSpan={2}>
-                                <Bullseye>
-                                    <EmptyState
-                                        headingLevel="h2"
-                                        titleText={variant === "danger" ? _("No Errors") : _("No Warnings")}
-                                        icon={CheckCircleIcon}
-                                        variant={EmptyStateVariant.sm}
-                                    >
-                                        <EmptyStateBody>
-                                            {variant === "danger"
-                                                ? _("No errors found.")
-                                                : _("No warnings found.")}
-                                        </EmptyStateBody>
-                                    </EmptyState>
-                                </Bullseye>
-                            </Td>
-                        </Tr>
-                    )}
-                </Tbody>
-            </Table>
-        </Alert>
-    );
-};
-
-// Renders an expandable TreeTable of diagnostic messages
-const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnostics: DiagnosticsEntry[], bridgeConnected: boolean }) => {
-    const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Use rawName as identifier
-    const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
-
-    useEffect(() => {
-        if (selectedRawName && drawerRef.current) {
-            drawerRef.current.focus(); // Focus the drawer after it is rendered
-        }
-    }, [selectedRawName]);
-
-    const onRowClick = (entry: DiagnosticsEntry) => {
-        setSelectedRawName(entry.rawName);
-    };
-
-    const closeDrawer = () => {
-        setSelectedRawName(null);
-    };
-
-    const columnNames = {
-        name: _("Name"),
-        path: _("Path"),
-        message: _("Message"),
-    };
-
-    const renderRows = (
-        [diag, ...remainingDiag]: DiagnosticsEntry[],
-        indentLevel = 1,
-        posinset = 1,
-        rowIndex = 0,
-        isHidden = false
-    ): React.ReactNode[] => {
-        if (!diag) return [];
-
-        const isExpanded = expandedRows.includes(diag.name);
-
-        const treeRow: TdProps["treeRow"] = {
-            onCollapse: (event) => {
-                event.stopPropagation(); // Prevent triggering onClick when expanding/collapsing
-                setExpandedRows(prevExpanded =>
-                    prevExpanded.includes(diag.name)
-                        ? prevExpanded.filter(name => name !== diag.name)
-                        : [...prevExpanded, diag.name]
-                );
-            },
-            rowIndex,
-            props: {
-                isExpanded,
-                isHidden,
-                "aria-level": indentLevel,
-                "aria-posinset": posinset,
-                "aria-setsize": diag.children.length,
-                icon: diag.icon,
-            },
-        };
-
-        const childRows = diag.children.length
-            ? renderRows(diag.children, indentLevel + 1, 1, rowIndex + 1, !isExpanded || isHidden)
-            : [];
-
-        return [
-            <TreeRowWrapper
-                key={diag.rawName}
-                row={{ props: treeRow.props }}
-                isClickable
-                onClick={() => onRowClick(diag)}
-            >
-                <Td dataLabel={_("Name")} treeRow={treeRow}>
-                    <Title headingLevel="h3" size="sm">{diag.name}</Title>
-                    {diag.path}
-                </Td>
-                <Td dataLabel={columnNames.message}>{diag.message}</Td>
-            </TreeRowWrapper>,
-            ...childRows,
-            ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden),
-        ];
-    };
-
-    // Helper function to find the latest entry by path
-    const findEntryByRawName = (entries: DiagnosticsEntry[], rawName: string): DiagnosticsEntry | null => {
-        for (const entry of entries) {
-            if (entry.rawName === rawName) {
-                return entry;
-            }
-            const foundInChildren = findEntryByRawName(entry.children, rawName);
-            if (foundInChildren) {
-                return foundInChildren;
-            }
-        }
-        return null;
-    };
-
-    const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
-
-    const drawerPanel = (
-        <DrawerPanelContent isResizable defaultSize="35%" maxSize="50%" minSize="20%">
-            {selectedEntry && (
-                <div style={{ padding: "1rem" }}>
-                    <DrawerHead>
-                        <span tabIndex={selectedEntry ? 0 : -1} ref={drawerRef}>
-                            Diagnostics Details
-                        </span>
-                        <DrawerActions>
-                            <DrawerCloseButton onClick={closeDrawer} />
-                        </DrawerActions>
-                    </DrawerHead>
-                    <Title headingLevel="h2" size="lg">{selectedEntry.icon} {selectedEntry.name}</Title>
-                    <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
-                    <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
-                    <p><strong>{_("Level")}:</strong> {
-                        selectedEntry.severity_level === 3
-                            ? _("STALE")
-                            : selectedEntry.severity_level === 2
-                                ? _("ERROR")
-                                : selectedEntry.severity_level === 1
-                                    ? _("WARNING")
-                                    : _("OK")
-                    }
-                    </p>
-                    <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
-                    {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
-                        <div>
-                            <br />
-                            <strong>{_("Values")}:</strong>
-                            <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
-                                <Tbody>
-                                    {Object.entries(selectedEntry.values).map(([key, value]) => (
-                                        <Tr key={key}>
-                                            <Td>{key}</Td>
-                                            <Td>{value}</Td>
-                                        </Tr>
-                                    ))}
-                                </Tbody>
-                            </Table>
-                        </div>
-                    )}
-                </div>
-            )}
-        </DrawerPanelContent>
-    );
-
-    return (
-        <Drawer isExpanded={!!selectedEntry} isInline>
-            <DrawerContent panelContent={drawerPanel}>
-                <DrawerContentBody style={{ marginRight: "1rem" }}>
-                    <Card>
-                        <CardTitle>{_("All Diagnostics")}</CardTitle>
-                        <CardBody>
-                            <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
-                                <Thead>
-                                    <Tr>
-                                        <Th>{_("Name")}</Th>
-                                        <Th>{_("Message")}</Th>
-                                    </Tr>
-                                </Thead>
-                                <Tbody>
-                                    {renderRows(diagnostics)}
-                                    {(diagnostics.length === 0) && (
-                                        <Tr>
-                                            <Td colSpan={2}>
-                                                <Bullseye>
-                                                    <EmptyState
-                                                        headingLevel="h2"
-                                                        titleText="Connecting"
-                                                        icon={Spinner}
-                                                        variant={EmptyStateVariant.sm}
-                                                    >
-                                                        <EmptyStateBody>
-                                                            { bridgeConnected
-                                                                ? _("Listening for the diagnostics topic...")
-                                                                : _("Attempting to connect to the Foxglove bridge...")}
-                                                        </EmptyStateBody>
-                                                    </EmptyState>
-                                                </Bullseye>
-                                            </Td>
-                                        </Tr>
-                                    )}
-                                </Tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                </DrawerContentBody>
-            </DrawerContent>
-        </Drawer>
-    );
 };
 
 export const Application = () => {
