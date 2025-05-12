@@ -487,6 +487,8 @@ export const Application = () => {
         }
 
         const retryDelay = 3000; // 3 seconds
+        const timeoutDuration = 5000; // 5 seconds
+        let timeoutId: NodeJS.Timeout | null = null;
 
         const connectToWebSocket = () => {
             const ros = new ROSLIB.Ros({ url });
@@ -518,6 +520,11 @@ export const Application = () => {
             console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
 
             diagnosticsTopic.subscribe((message) => {
+                // Clear the timeout on receiving a message
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+
                 // Process incoming diagnostics messages
                 if (Array.isArray(message.status)) {
                     const diagnosticsTree = buildDiagnosticsTree(message.status.map(({ name, message, level, hardware_id, values }) => ({
@@ -531,12 +538,21 @@ export const Application = () => {
                 } else {
                     console.warn('Unexpected diagnostics data format:', message);
                 }
+
+                // Reset the timeout to clear diagnostics if no message is received
+                timeoutId = setTimeout(() => {
+                    console.warn("No diagnostics message received for 5 seconds. Clearing diagnostics.");
+                    setDiagnostics([]);
+                }, timeoutDuration);
             });
 
             return () => {
                 diagnosticsTopic.unsubscribe();
                 setBridgeConnected(false);
                 ros.close();
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
             };
         };
 
