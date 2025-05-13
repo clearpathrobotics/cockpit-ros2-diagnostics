@@ -188,12 +188,12 @@ export const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnos
     );
 
     return (
-        <Drawer isExpanded={!!selectedEntry} isInline>
-            <DrawerContent panelContent={drawerPanel}>
-                <DrawerContentBody style={{ marginRight: "1rem" }}>
-                    <Card>
-                        <CardTitle>{_("All Diagnostics")}</CardTitle>
-                        <CardBody>
+        <Card>
+            <CardTitle>{_("All Diagnostics")}</CardTitle>
+            <CardBody>
+                <Drawer isExpanded={!!selectedEntry} isInline>
+                    <DrawerContent panelContent={drawerPanel}>
+                        <DrawerContentBody>
                             <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
                                 <Thead>
                                     <Tr>
@@ -225,10 +225,10 @@ export const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnos
                                     )}
                                 </Tbody>
                             </Table>
-                        </CardBody>
-                    </Card>
-                </DrawerContentBody>
-            </DrawerContent>
-        </Drawer>
+                        </DrawerContentBody>
+                    </DrawerContent>
+                </Drawer>
+            </CardBody>
+        </Card>
     );
 };
