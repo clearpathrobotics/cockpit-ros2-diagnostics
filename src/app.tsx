@@ -265,7 +265,7 @@ export const Application = () => {
 
                 // Reset the timeout to clear diagnostics if no message is received
                 timeoutId = setTimeout(() => {
-                    console.warn("No diagnostics message received for 5 seconds. Clearing diagnostics.");
+                    console.warn("No diagnostics message received for 5 seconds. Clearing stale diagnostics.");
                     setDiagnostics([]);
                 }, timeoutDuration);
             });
