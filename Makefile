@@ -42,47 +42,18 @@ $(COCKPIT_REPO_STAMP): Makefile
 	git archive $(COCKPIT_REPO_TREE) -- $(COCKPIT_REPO_FILES) | tar x
 
 #
-# i18n
-#
-
-LINGUAS=$(basename $(notdir $(wildcard po/*.po)))
-
-po/$(PACKAGE_NAME).js.pot:
-	xgettext --default-domain=$(PACKAGE_NAME) --output=- --language=C --keyword= \
-		--add-comments=Translators: \
-		--keyword=_:1,1t --keyword=_:1c,2,2t --keyword=C_:1c,2 \
-		--keyword=N_ --keyword=NC_:1c,2 \
-		--keyword=gettext:1,1t --keyword=gettext:1c,2,2t \
-		--keyword=ngettext:1,2,3t --keyword=ngettext:1c,2,3,4t \
-		--keyword=gettextCatalog.getString:1,3c --keyword=gettextCatalog.getPlural:2,3,4c \
-		--from-code=UTF-8 $$(find src/ -name '*.[jt]s' -o -name '*.[jt]sx') | \
-		sed '/^#/ s/, c-format//' > $@
-
-po/$(PACKAGE_NAME).html.pot: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
-	pkg/lib/html2po -o $@ $$(find src -name '*.html')
-
-po/$(PACKAGE_NAME).manifest.pot: $(COCKPIT_REPO_STAMP)
-	pkg/lib/manifest2po -o $@ src/manifest.json
-
-po/$(PACKAGE_NAME).metainfo.pot: $(APPSTREAMFILE)
-	xgettext --default-domain=$(PACKAGE_NAME) --output=$@ $<
-
-po/$(PACKAGE_NAME).pot: po/$(PACKAGE_NAME).html.pot po/$(PACKAGE_NAME).js.pot po/$(PACKAGE_NAME).manifest.pot po/$(PACKAGE_NAME).metainfo.pot
-	msgcat --sort-output --output-file=$@ $^
-
-po/LINGUAS:
-	echo $(LINGUAS) | tr ' ' '\n' > $@
-
-#
 # Build/Install/dist
 #
 
-$(SPEC): packaging/$(SPEC).in $(NODE_MODULES_TEST)
-	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) = /'); \
-	awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
+$(SPEC): debian/$(SPEC).in $(NODE_MODULES_TEST)
+	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) /; s/[~^>=]//g'); \
+    awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
 
 $(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js
 	NODE_ENV=$(NODE_ENV) ./build.js
+
+debian/changelog: debian/changelog.in
+	sed 's/VERSION/$(VERSION)/' $< > $@
 
 watch: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
 	NODE_ENV=$(NODE_ENV) ./build.js --watch
@@ -90,15 +61,11 @@ watch: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
 clean:
 	rm -rf dist/
 	rm -f $(SPEC)
-	rm -f po/LINGUAS
 
-install: $(DIST_TEST) po/LINGUAS
+install: $(DIST_TEST)
 	mkdir -p $(DESTDIR)$(PREFIX)/share/cockpit/$(PACKAGE_NAME)
 	cp -r dist/* $(DESTDIR)$(PREFIX)/share/cockpit/$(PACKAGE_NAME)
 	mkdir -p $(DESTDIR)$(PREFIX)/share/metainfo/
-	msgfmt --xml -d po \
-		--template $(APPSTREAMFILE) \
-		-o $(DESTDIR)$(PREFIX)/share/metainfo/$(APPSTREAMFILE)
 
 # this requires a built source tree and avoids having to install anything system-wide
 devel-install: $(DIST_TEST)
@@ -124,7 +91,7 @@ $(TARFILE): export NODE_ENV=production
 $(TARFILE): $(DIST_TEST) $(SPEC)
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
 	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
-		--exclude packaging/$(SPEC).in --exclude node_modules \
+		--exclude debian/$(SPEC).in --exclude node_modules \
 		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) dist/
 
 $(NODE_CACHE): $(NODE_MODULES_TEST)

@@ -26,8 +26,12 @@
 /tools/
 
 # subdirs (/subdir/...)
-/packaging/arch/PKGBUILD
-/packaging/debian/changelog
+/debian/changelog
+/debian/cockpit-ros2-diagnostics/
+/debian/.debhelper/
+/debian/cockpit-ros2-diagnostics.substvars
+/debian/debhelper*
+/debian/files
 /po/*.pot
 /po/LINGUAS
 /test/common/

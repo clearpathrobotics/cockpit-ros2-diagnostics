@@ -10,4 +10,3 @@ export RUN_TESTS_OPTIONS=--track-naughties
 
 make codecheck
 make check
-make po/ros2-diagnostics.pot
