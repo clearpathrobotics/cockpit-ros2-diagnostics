@@ -19,7 +19,6 @@
 /cockpit-*.tar.xz
 /cockpit-ros2-diagnostics.spec
 /dist/
-/package-lock.json
 /pkg/
 /node_modules/
 /tmp/
