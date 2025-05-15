@@ -24,6 +24,7 @@ export interface DiagnosticsEntry {
     message: string;
     severity_level: number;
     hardware_id: string | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     values: { [key: string]: any } | null;
     children: DiagnosticsEntry[];
     icon: JSX.Element | null;

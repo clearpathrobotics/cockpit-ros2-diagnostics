@@ -62,6 +62,7 @@ const sanitizeNamespace = (namespace: string): string => {
 };
 
 // Helper function to build a nested DiagnosticsEntry tree
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
     const root: DiagnosticsEntry[] = [];
 
