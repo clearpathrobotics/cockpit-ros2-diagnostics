@@ -1,29 +1,71 @@
-# Cockpit Starter Kit
+** This module is under constructions and installation instructions and integration tests will not work yet **
 
-Scaffolding for a [Cockpit](https://cockpit-project.org/) module.
+# Cockpit ROS 2 Diagnostics
 
-# Development dependencies
+This is a Cockpit module that is intended to be installed alongside [Cockpit](https://cockpit-project.org/) and connects to the [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge)
 
-On Debian/Ubuntu:
+This module is built on the cockpit starter kit: https://github.com/cockpit-project/starter-kit and using modified code files from https://github.com/tier4/roslibjs-foxglove.
+
+# Installation instructions
+
+This is installed and running automatically on Clearpath Robots without any manual installation required.
+
+The following instructions should be completed on the computer that is to be monitored and managed using the cockpit interface. In most cases this will be the robot computer.
+
+1. Install cockpit: https://cockpit-project.org/running.html#ubuntu
+
+2. Add the Clearpath Robotics Package Server:
+
+    ```bash
+    wget https://packages.clearpathrobotics.com/public.key -O - | sudo apt-key add -
+    sudo sh -c 'echo "deb https://packages.clearpathrobotics.com/stable/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/clearpath-latest.list'
+    sudo apt update
+    ```
+
+3. Install this module and the foxglove bridge
+
+    ```bash
+    sudo apt install cockpit-ros2-diagnostics ros-$ROS_DISTRO-foxglove-bridge
+    ```
+
+4. In order to open the UI on a remote computer and connect to the foxglove bridge, either this has to happen over an unsecured connection (http) or cockpit must be placed behind a reverse proxy. The currently supported option is to set cockpit up for an unsecure connection. Allow an unencrypted HTTP connection by creating the [cockpit.conf](https://cockpit-project.org/guide/latest/cockpit.conf.5) file and set `AllowUnencrypted=true` in the `WebService` section.
+
+    ```bash
+    echo "[WebService]
+    AllowUnencrypted=true" > sudo tee /etc/cockpit/cockpit.conf
+    ```
+
+# Usage Instructions
+
+1. If not using with a Clearpath Robot then you will need to start your [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge) manually. It must be launched with the default port (8765):
+
+    ```bash
+    ros2 launch foxglove_bridge foxglove_bridge_launch.xml
+    ```
+
+2. Open a supported browser and go to `http://<ip-address>:9090` but replace `<ip-address>` with the ip address or hostname of your robot computer. Remember to use the IP address for the network that over which you are connecting to the robot. In order for the websocket connection to work and successfully receive the ROS 2 topics, cockpit must be accessed over http. This is an unsecure connection but it is the simplest to configure. If a secure connection is required then cockpit must be setup behind a reverse proxy.
+
+3. Go to the ROS 2 Diagnostics tab
+
+# Development and Source Instructions
+
+## Development dependencies
+
+On Ubuntu:
 
     sudo apt install gettext nodejs npm make
 
-On Fedora:
-
-    sudo dnf install gettext nodejs npm make
-
-
-# Getting and building the source
+## Getting and building the source
 
 These commands check out the source and build it into the `dist/` directory:
 
-```
+```bash
 git clone https://github.com/clearpathrobotics/cockpit-ros2-diagnostics.git
 cd cockpit-ros2-diagnostics
 make
 ```
 
-# Installing
+## Installing
 
 `make install` compiles and installs the package in `/usr/local/share/cockpit/`. The
 convenience targets `srpm` and `rpm` build the source and binary rpms,
@@ -37,7 +79,7 @@ tree. To do that, run `make devel-install`, which links your checkout to the
 location were cockpit-bridge looks for packages. If you prefer to do
 this manually:
 
-```
+```bash
 mkdir -p ~/.local/share/cockpit
 ln -s `pwd`/dist ~/.local/share/cockpit/cockpit-ros2-diagnostics
 ```
@@ -72,7 +114,7 @@ remove manually the symlink:
 
     rm ~/.local/share/cockpit/cockpit-ros2-diagnostics
 
-# Running eslint
+## Running eslint
 
 Cockpit Starter Kit uses [ESLint](https://eslint.org/) to automatically check
 JavaScript/TypeScript code style in `.js[x]` and `.ts[x]` files.
@@ -106,7 +148,7 @@ Violations of some rules can be fixed automatically by:
 
 Rules configuration can be found in the `.stylelintrc.json` file.
 
-# Running tests locally
+## Running tests locally
 
 Run `make check` to build an RPM, install it into a standard Cockpit test VM
 (centos-9-stream by default), and run the test/check-application integration test on
@@ -130,7 +172,7 @@ You can also run the test against a different Cockpit image, for example:
 
     TEST_OS=fedora-40 make check
 
-# Running tests in CI
+## Running tests in CI
 
 These tests can be run in [Cirrus CI](https://cirrus-ci.org/), on their free
 [Linux Containers](https://cirrus-ci.org/guide/linux/) environment which
@@ -153,7 +195,7 @@ for using with the [tmt test management tool](https://docs.fedoraproject.org/en-
 Note that Packit tests can *not* run their own virtual machine images, thus
 they only run [@nondestructive tests](https://github.com/cockpit-project/cockpit/blob/main/test/common/testlib.py).
 
-# Automated release of tarballs on Github
+## Automated release of tarballs on Github
 
 Once your cloned project is ready for a release, you should consider automating
 that. The intention is that the only manual step for releasing a project is to create
@@ -176,14 +218,14 @@ at the top, and rename it to just `*.yml`.
 The Fedora and COPR releases are done with [Packit](https://packit.dev/),
 see the [packit.yaml](./packit.yaml) control file.
 
-# Automated maintenance
+## Automated maintenance
 
 It is important to keep your [NPM modules](./package.json) up to date, to keep
 up with security updates and bug fixes. This happens with
 [dependabot](https://github.com/dependabot),
 see [configuration file](.github/dependabot.yml).
 
-# Further reading
+## Further reading
 
  * The [Starter Kit announcement](https://cockpit-project.org/blog/cockpit-starter-kit.html)
    blog post explains the rationale for this project.
