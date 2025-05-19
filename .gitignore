@@ -25,12 +25,12 @@
 /tools/
 
 # subdirs (/subdir/...)
-/debian/changelog
-/debian/cockpit-ros2-diagnostics/
-/debian/.debhelper/
-/debian/cockpit-ros2-diagnostics.substvars
-/debian/debhelper*
-/debian/files
+/packaging/debian/changelog
+/packaging/debian/cockpit-ros2-diagnostics/
+/packaging/debian/.debhelper/
+/packaging/debian/cockpit-ros2-diagnostics.substvars
+/packaging/debian/debhelper*
+/packaging/debian/files
 /po/*.pot
 /po/LINGUAS
 /test/common/

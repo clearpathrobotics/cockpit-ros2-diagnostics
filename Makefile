@@ -45,14 +45,14 @@ $(COCKPIT_REPO_STAMP): Makefile
 # Build/Install/dist
 #
 
-$(SPEC): debian/$(SPEC).in $(NODE_MODULES_TEST)
+$(SPEC): packaging/$(SPEC).in $(NODE_MODULES_TEST)
 	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) /; s/[~^>=]//g'); \
     awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
 
 $(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js
 	NODE_ENV=$(NODE_ENV) ./build.js
 
-debian/changelog: debian/changelog.in
+packaging/debian/changelog: packaging/debian/changelog.in
 	sed 's/VERSION/$(VERSION)/' $< > $@
 
 watch: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
@@ -91,7 +91,7 @@ $(TARFILE): export NODE_ENV=production
 $(TARFILE): $(DIST_TEST) $(SPEC)
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
 	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
-		--exclude debian/$(SPEC).in --exclude node_modules \
+		--exclude packaging/$(SPEC).in --exclude node_modules \
 		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) dist/
 
 $(NODE_CACHE): $(NODE_MODULES_TEST)
