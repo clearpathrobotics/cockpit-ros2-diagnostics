@@ -32,7 +32,7 @@ The following instructions should be completed on the computer that is to be mon
 
     ```bash
     echo "[WebService]
-    AllowUnencrypted=true" > sudo tee /etc/cockpit/cockpit.conf
+    AllowUnencrypted=true" | sudo tee /etc/cockpit/cockpit.conf
     ```
 
 # Usage Instructions
