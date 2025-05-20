@@ -150,8 +150,15 @@ Rules configuration can be found in the `.stylelintrc.json` file.
 
 ## Running tests locally
 
-Run `make check` to build an RPM, install it into a standard Cockpit test VM
-(centos-9-stream by default), and run the test/check-application integration test on
+To run the tests locally you must install:
+
+    ```bash
+    sudo apt install chromium-browser chromium-chromedriver
+    sudo snap install chomium
+    ```
+
+Run `make check` to build a package, install it into a standard Cockpit test VM
+(set to Ubuntu for this repo), and run the test/check-application integration test on
 it. This uses Cockpit's Chrome DevTools Protocol based browser tests, through a
 Python API abstraction. Note that this API is not guaranteed to be stable, so
 if you run into failures and don't want to adjust tests, consider checking out

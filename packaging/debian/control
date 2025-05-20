@@ -12,7 +12,7 @@ Package: cockpit-ros2-diagnostics
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends},
-         cockpit-bridge (>= 318),
+         cockpit-bridge (>= 314),
 Description: Cockpit component for viewing ROS 2 diagnostics.
  The Cockpit Web Console enables users to administer GNU/Linux servers using a
  web browser.

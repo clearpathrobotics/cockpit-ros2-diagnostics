@@ -12,13 +12,26 @@ import testlib
 # way that influences other tests.
 @testlib.nondestructive
 class TestApplication(testlib.MachineCase):
+
+    def enter_ros2_diagnostics(self):
+        self.login_and_go("/ros2-diagnostics")
+        self.browser.wait_text(".pf-v6-c-title", "ROS 2 Diagnostics")
+
+    def checkConnecting(self): # Not yet fully implemented
+        b = self.browser
+
+        b.wait_text(".pf-v6-c-card__title-text", "All Diagnostics")
+        b.wait_text(".pf-v6-c-empty-state__title-text", "Connecting")
+
     def testBasic(self):
         b = self.browser
         m = self.machine
 
-        self.login_and_go("/ros2-diagnostics")
+        self.enter_ros2_diagnostics()
+
         # verify expected heading
-        b.wait_text(".pf-v6-c-card__title", "ROS 2 diagnostics")
+        b.wait_text(".pf-v6-c-alert__title", "Danger alert:Configuration Error: 'robot.yaml' file not found or empty")
+
 
 
 if __name__ == '__main__':

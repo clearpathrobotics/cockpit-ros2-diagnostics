@@ -46,8 +46,8 @@ $(COCKPIT_REPO_STAMP): Makefile
 #
 
 $(SPEC): packaging/$(SPEC).in $(NODE_MODULES_TEST)
-	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) /; s/[~^>=]//g'); \
-    awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
+	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) = /'); \
+	awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
 
 $(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js
 	NODE_ENV=$(NODE_ENV) ./build.js
@@ -88,11 +88,12 @@ dist: $(TARFILE)
 # pre-built dist/ (so it's not necessary) and ship package-lock.json (so that
 # node_modules/ can be reconstructed if necessary)
 $(TARFILE): export NODE_ENV=production
-$(TARFILE): $(DIST_TEST) $(SPEC)
+$(TARFILE): $(DIST_TEST) $(SPEC) packaging/debian/changelog
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
 	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
 		--exclude packaging/$(SPEC).in --exclude node_modules \
-		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) dist/
+		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) \
+		packaging/debian/changelog dist/
 
 $(NODE_CACHE): $(NODE_MODULES_TEST)
 	tar --xz $(TAR_ARGS) -cf $@ node_modules
@@ -100,27 +101,27 @@ $(NODE_CACHE): $(NODE_MODULES_TEST)
 node-cache: $(NODE_CACHE)
 
 # convenience target for developers
-srpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
-	rpmbuild -bs \
-	  --define "_sourcedir `pwd`" \
-	  --define "_srcrpmdir `pwd`" \
-	  $(SPEC)
+# srpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
+# 	rpmbuild -bs \
+# 	  --define "_sourcedir `pwd`" \
+# 	  --define "_srcrpmdir `pwd`" \
+# 	  $(SPEC)
 
 # convenience target for developers
-rpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
-	mkdir -p "`pwd`/output"
-	mkdir -p "`pwd`/rpmbuild"
-	rpmbuild -bb \
-	  --define "_sourcedir `pwd`" \
-	  --define "_specdir `pwd`" \
-	  --define "_builddir `pwd`/rpmbuild" \
-	  --define "_srcrpmdir `pwd`" \
-	  --define "_rpmdir `pwd`/output" \
-	  --define "_buildrootdir `pwd`/build" \
-	  $(SPEC)
-	find `pwd`/output -name '*.rpm' -printf '%f\n' -exec mv {} . \;
-	rm -r "`pwd`/rpmbuild"
-	rm -r "`pwd`/output" "`pwd`/build"
+# rpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
+# 	mkdir -p "`pwd`/output"
+# 	mkdir -p "`pwd`/rpmbuild"
+# 	rpmbuild -bb \
+# 	  --define "_sourcedir `pwd`" \
+# 	  --define "_specdir `pwd`" \
+# 	  --define "_builddir `pwd`/rpmbuild" \
+# 	  --define "_srcrpmdir `pwd`" \
+# 	  --define "_rpmdir `pwd`/output" \
+# 	  --define "_buildrootdir `pwd`/build" \
+# 	  $(SPEC)
+# 	find `pwd`/output -name '*.rpm' -printf '%f\n' -exec mv {} . \;
+# 	rm -r "`pwd`/rpmbuild"
+# 	rm -r "`pwd`/output" "`pwd`/build"
 
 # build a VM with locally built distro pkgs installed
 # disable networking, VM images have mock/pbuilder with the common build dependencies pre-installed
