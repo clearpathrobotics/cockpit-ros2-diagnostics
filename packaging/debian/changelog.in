@@ -2,4 +2,4 @@ cockpit-ros2-diagnostics (VERSION-1) UNRELEASED; urgency=medium
 
   * Upstream build
 
- -- Clearpath Robotics <cockpit-devel@lists.fedorahosted.org>  Wed, 14 May 2025 13:34:21 +0400
+ -- Hilary Luo <hluo@clearpathrobotics.com>  Wed, 14 May 2025 13:34:21 +0400
