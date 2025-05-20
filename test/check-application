@@ -30,7 +30,7 @@ class TestApplication(testlib.MachineCase):
         self.enter_ros2_diagnostics()
 
         # verify expected heading
-        b.wait_text(".pf-v6-c-alert__title", "Danger alert:Configuration Error: 'robot.yaml' file not found or empty")
+        b.wait_text(".pf-v6-c-alert__title", "Danger alert:'robot.yaml' file not found or empty")
 
 
 
