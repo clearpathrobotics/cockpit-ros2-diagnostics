@@ -128,6 +128,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
             ros.on("connection", () => {
                 console.log("Connected to Foxglove bridge at " + url);
+                console.log(`Subscribing to topic: ${diagnosticsTopic.name}`); // Moved inside the connection callback
                 onConnectionStatusChange(true);
             });
 
@@ -149,8 +150,6 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                 name: `${namespace}/diagnostics_agg`,
                 messageType: "diagnostic_msgs/DiagnosticArray",
             });
-
-            console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
 
             diagnosticsTopic.subscribe((message) => {
                 // Clear the timeout if a new message is received
