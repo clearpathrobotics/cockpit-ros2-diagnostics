@@ -13,7 +13,7 @@ Comment:
  without internet access and lots of extra unpackaged build dependencies.
 
 Files: *
-Copyright: 2025  Clearpath Robotics, by Rockwell Automation.
+Copyright: 2025  Clearpath Robotics, Inc., a Rockwell Automation Company. All rights reserved.
 License: LGPL-2.1
  This package is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@ License: LGPL-2.1
  Public License can be found in "/usr/share/common-licenses/LGPL-2.1".
 
 Files: *.metainfo.xml
-Copyright: Copyright (C) 2025 Clearpath Robotics, by Rockwell Automation.
+Copyright: Copyright (C) 2025 Clearpath Robotics, Inc., a Rockwell Automation Company. All rights reserved.
 License: CC0-1.0
  On Debian systems, the complete text of the Creative Commons Zero v1.0
  Universal Public License is in "/usr/share/common-licenses/LGPL-2.1".

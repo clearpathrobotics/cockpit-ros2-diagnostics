@@ -25,6 +25,7 @@
 /tools/
 
 # subdirs (/subdir/...)
+/debian/
 /packaging/debian/changelog
 /packaging/debian/cockpit-ros2-diagnostics/
 /packaging/debian/.debhelper/

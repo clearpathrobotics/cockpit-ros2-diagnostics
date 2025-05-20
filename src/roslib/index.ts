@@ -4,7 +4,7 @@
  *
  * Modifications made by Hilary Luo 2025.
  *
- * Copyright (C) 2025 Clearpath Robotics, Inc., a Rockwell Automation Company.
+ * Copyright (C) 2025 Clearpath Robotics, Inc., a Rockwell Automation Company. All rights reserved.
  *
  * Cockpit ROS 2 Diagnostics is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
