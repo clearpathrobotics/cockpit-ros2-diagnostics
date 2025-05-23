@@ -27,4 +27,4 @@ Provide the steps to reproduce:
 
 
 **Other notes**
-Add anything else you thing is important.
+Add anything else you think is important.
