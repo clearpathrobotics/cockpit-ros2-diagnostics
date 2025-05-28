@@ -28,6 +28,7 @@ import { DiagnosticsTreeTable } from "./components/DiagnosticsTreeTable";
 import { RosConnectionManager } from "./components/RosConnectionManager";
 import { useNamespace } from "./hooks/useNamespace";
 import { useWebSocketUrl } from "./hooks/useWebSocketUrl";
+import { DiagnosticsCapture } from "./components/DiagnosticsCapture";
 
 const _ = cockpit.gettext;
 
@@ -52,6 +53,7 @@ export const Application = () => {
                             title={invalidNamespaceMessage} // Display error message if namespace is invalid
                         />
                     )}
+                    <DiagnosticsCapture namespace={namespace} />
                     { !invalidNamespaceMessage && (
                         <>
                             <RosConnectionManager
