@@ -96,11 +96,6 @@ export const DiagnosticsTable = ({
                                         icon={CheckCircleIcon}
                                         variant={EmptyStateVariant.sm}
                                     >
-                                        <EmptyStateBody>
-                                            {variant === "error"
-                                                ? _("No errors found.")
-                                                : _("No warnings found.")}
-                                        </EmptyStateBody>
                                     </EmptyState>
                                 </Bullseye>
                             </Td>
