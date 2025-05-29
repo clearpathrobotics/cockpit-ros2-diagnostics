@@ -59,12 +59,20 @@ export const DiagnosticsTreeTable = ({
 }) => {
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
     const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
+    const [triggerDrawerFocus, setTriggerDrawerFocus] = useState(false); // Used to ensure focus happens after the drawer renders
 
     useEffect(() => {
-        if (selectedRawName && drawerRef.current) {
-            drawerRef.current.focus(); // Focus the drawer after it is rendered
+        if (selectedRawName) {
+            setTriggerDrawerFocus(true);
         }
     }, [selectedRawName]);
+
+    useEffect(() => {
+        if (triggerDrawerFocus && drawerRef.current) {
+            drawerRef.current.focus();
+            setTriggerDrawerFocus(false);
+        }
+    }, [triggerDrawerFocus]);
 
     const closeDrawer = () => {
         setSelectedRawName(null);
