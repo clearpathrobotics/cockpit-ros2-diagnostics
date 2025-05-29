@@ -57,7 +57,7 @@ export const DiagnosticsTreeTable = ({
     setSelectedRawName: (rawName: string | null) => void,
 }) => {
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
+    const drawerRef = React.useRef<HTMLDivElement>(null); // Ref for focus management
     const [triggerDrawerFocus, setTriggerDrawerFocus] = useState(false); // Used to ensure focus happens after the drawer renders
     const [lastExpandedRawName, setLastExpandedRawName] = useState<string | null>(null); // Track last expanded
 
@@ -192,14 +192,15 @@ export const DiagnosticsTreeTable = ({
     const drawerPanel = (
         <DrawerPanelContent isResizable defaultSize="35%" maxSize="50%" minSize="20%">
             {selectedEntry && (
-                <div style={{ padding: "1rem" }}>
+                <div
+                    style={{ padding: "1rem" }}
+                    tabIndex={0}
+                    ref={drawerRef}
+                >
                     <DrawerHead>
-                        <span tabIndex={selectedEntry ? 0 : -1} ref={drawerRef}>
-                            <Title headingLevel="h3">
-                                Diagnostic Details
-                            </Title>
-                        </span>
-
+                        <Title headingLevel="h3">
+                            Diagnostic Details
+                        </Title>
                         <DrawerActions>
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
