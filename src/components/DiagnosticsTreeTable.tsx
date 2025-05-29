@@ -76,6 +76,15 @@ export const DiagnosticsTreeTable = ({
         message: _("Message"),
     };
 
+    // Helper to toggle expansion for a given diagnostic rawName
+    const toggleRowExpansion = (diagRawName: string) => {
+        setExpandedRows(prevExpanded =>
+            prevExpanded.includes(diagRawName)
+                ? prevExpanded.filter(name => name !== diagRawName)
+                : [...prevExpanded, diagRawName]
+        );
+    };
+
     const renderRows = (
         [diag, ...remainingDiag]: DiagnosticsEntry[],
         indentLevel = 1,
@@ -85,16 +94,12 @@ export const DiagnosticsTreeTable = ({
     ): React.ReactNode[] => {
         if (!diag) return [];
 
-        const isExpanded = expandedRows.includes(diag.name);
+        const isExpanded = expandedRows.includes(diag.rawName);
 
         const treeRow: TdProps["treeRow"] = {
             onCollapse: (event) => {
                 event.stopPropagation(); // Prevent triggering onClick when expanding/collapsing
-                setExpandedRows(prevExpanded =>
-                    prevExpanded.includes(diag.name)
-                        ? prevExpanded.filter(name => name !== diag.name)
-                        : [...prevExpanded, diag.name]
-                );
+                toggleRowExpansion(diag.rawName);
             },
             props: {
                 isExpanded,
@@ -117,7 +122,10 @@ export const DiagnosticsTreeTable = ({
                 isSelectable
                 isRowSelected={selectedRawName === diag.rawName}
                 isClickable
-                onClick={() => setSelectedRawName(diag.rawName)}
+                onClick={() => {
+                    setSelectedRawName(diag.rawName);
+                    toggleRowExpansion(diag.rawName);
+                }}
             >
                 <Td dataLabel={_("Name")} treeRow={treeRow}>
                     <Title headingLevel="h3" size="sm">{diag.name}</Title>
