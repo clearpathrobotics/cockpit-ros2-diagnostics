@@ -39,7 +39,7 @@ export const Application = () => {
     const url = useWebSocketUrl(); // Use custom hook for WebSocket URL
     const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
     const [bridgeConnected, setBridgeConnected] = useState(false);
-    const [selectedRawName, setSelectedRawName] = useState<string | null>(null);
+    const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Used as identifier for diag entry so that values get updated
 
     return (
         <Page id="ros2-diag" className='no-masthead-sidebar'>
@@ -66,7 +66,7 @@ export const Application = () => {
                             />
                             {diagnostics.length > 0 && (
                                 <>
-                                    <DiagnosticsTable diagnostics={diagnostics} setSelectedRawName={setSelectedRawName} variant="danger" />
+                                    <DiagnosticsTable diagnostics={diagnostics} setSelectedRawName={setSelectedRawName} variant="error" />
                                     <DiagnosticsTable diagnostics={diagnostics} setSelectedRawName={setSelectedRawName} variant="warning" />
                                 </>
                             )}

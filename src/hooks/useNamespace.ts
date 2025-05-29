@@ -18,7 +18,9 @@
  */
 
 import { useEffect, useState } from "react";
+
 import cockpit from "cockpit";
+
 import { sanitizeNamespace } from "../utils/namespaceUtils";
 
 const _ = cockpit.gettext;
@@ -38,15 +40,9 @@ export const useNamespace = (defaultNamespace: string) => {
                 let originalNamespace = "";
                 let sanitizedNamespace = "";
 
-                // Filter out commented lines
-                const uncommentedLines = trimmedContent
-                        .split("\n")
-                        .filter((line) => !line.trim().startsWith("#"))
-                        .join("\n");
-
                 // Extract namespace
-                const namespaceMatch = uncommentedLines.match(/^[ \t]*namespace:[ \t]*(\S+)/ms);
-                const serialNumberMatch = uncommentedLines.match(/^serial_number:[ \t]*(\S+)/ms);
+                const namespaceMatch = trimmedContent.match(/^[ \t]*namespace:[ \t]*(\S+)/ms);
+                const serialNumberMatch = trimmedContent.match(/^serial_number:[ \t]*(\S+)/ms);
 
                 if (namespaceMatch) {
                     originalNamespace = namespaceMatch[1];

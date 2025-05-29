@@ -18,8 +18,6 @@
  */
 
 import React, { useEffect } from "react";
-import * as ROSLIB from "../roslib/index";
-import { DiagnosticsEntry } from "../interfaces";
 import { Icon } from "@patternfly/react-core";
 import {
     CheckCircleIcon,
@@ -27,6 +25,9 @@ import {
     ExclamationTriangleIcon,
     QuestionCircleIcon,
 } from "@patternfly/react-icons";
+
+import { DiagnosticsEntry } from "../interfaces";
+import * as ROSLIB from "../roslib/index";
 
 interface RosConnectionManagerProps {
     namespace: string;
@@ -128,7 +129,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
             ros.on("connection", () => {
                 console.log("Connected to Foxglove bridge at " + url);
-                console.log(`Subscribing to topic: ${diagnosticsTopic.name}`); // Moved inside the connection callback
+                console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
                 onConnectionStatusChange(true);
             });
 

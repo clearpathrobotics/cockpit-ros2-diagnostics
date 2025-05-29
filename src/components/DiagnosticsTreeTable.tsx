@@ -18,7 +18,6 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-
 import {
     Bullseye,
     Card,
@@ -78,12 +77,6 @@ export const DiagnosticsTreeTable = ({
         setSelectedRawName(null);
     };
 
-    const columnNames = {
-        name: _("Name"),
-        path: _("Path"),
-        message: _("Message"),
-    };
-
     // Helper to toggle expansion for a given diagnostic rawName
     const toggleRowExpansion = (diagRawName: string) => {
         setExpandedRows(prevExpanded =>
@@ -139,7 +132,7 @@ export const DiagnosticsTreeTable = ({
                     <Title headingLevel="h3" size="sm">{diag.name}</Title>
                     {diag.path}
                 </Td>
-                <Td dataLabel={columnNames.message}>{diag.message}</Td>
+                <Td dataLabel={_("Message")}>{diag.message}</Td>
             </TreeRowWrapper>,
             ...childRows,
             ...renderRows(remainingDiag, indentLevel, posinset + 1, rowIndex + 1 + childRows.length, isHidden),
@@ -197,13 +190,16 @@ export const DiagnosticsTreeTable = ({
                 <div style={{ padding: "1rem" }}>
                     <DrawerHead>
                         <span tabIndex={selectedEntry ? 0 : -1} ref={drawerRef}>
-                            Diagnostics Details
+                            <Title headingLevel="h2" size="md">
+                                Diagnostic Details
+                            </Title>
                         </span>
+
                         <DrawerActions>
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
                     </DrawerHead>
-                    <Title headingLevel="h2" size="lg">{selectedEntry.icon} {selectedEntry.name}</Title>
+                    <Title headingLevel="h3" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
                     <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
                     <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
                     <p><strong>{_("Level")}:</strong> {
@@ -218,9 +214,9 @@ export const DiagnosticsTreeTable = ({
                     </p>
                     <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
                     {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
-                        <div>
-                            <br />
-                            <strong>{_("Values")}:</strong>
+                        <>
+                            <p>&nbsp;</p>
+                            <p><strong>{_("Values")}:</strong></p>
                             <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
                                 <Tbody>
                                     {Object.entries(selectedEntry.values).map(([key, value]) => (
@@ -231,7 +227,7 @@ export const DiagnosticsTreeTable = ({
                                     ))}
                                 </Tbody>
                             </Table>
-                        </div>
+                        </>
                     )}
                 </div>
             )}

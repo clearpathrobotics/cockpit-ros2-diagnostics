@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-
 import {
     Alert,
     Bullseye,
@@ -31,6 +30,7 @@ import { CheckCircleIcon } from "@patternfly/react-icons";
 import { Table, Thead, Tr, Th, Tbody, Td } from "@patternfly/react-table";
 
 import cockpit from 'cockpit';
+
 import { DiagnosticsEntry } from "../interfaces";
 
 const _ = cockpit.gettext;
@@ -49,21 +49,21 @@ export const DiagnosticsTable = ({
 }: {
     diagnostics: DiagnosticsEntry[],
     setSelectedRawName: (rawName: string | null) => void,
-    variant: "danger" | "warning"
+    variant: "error" | "warning"
 }) => {
     const levelFilter = (level: number) =>
-        variant === "danger" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
+        variant === "error" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
 
     const filteredDiagnostics = collectLeafNodes(diagnostics).filter(d => levelFilter(d.severity_level));
 
     return (
         <Alert
-            variant={variant}
-            title={variant === "danger" ? _("Errors") : _("Warnings")}
+            variant={variant === "error" ? "danger" : "warning"}
+            title={variant === "error" ? _("Errors") : _("Warnings")}
             component='h2'
             isInline
         >
-            <Table aria-label={`${variant === "danger" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
+            <Table aria-label={`${variant === "error" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
                 <Thead>
                     <Tr>
                         <Th>{_("Name")}</Th>
@@ -92,12 +92,12 @@ export const DiagnosticsTable = ({
                                 <Bullseye>
                                     <EmptyState
                                         headingLevel="h2"
-                                        titleText={variant === "danger" ? _("No Errors") : _("No Warnings")}
+                                        titleText={variant === "error" ? _("No Errors") : _("No Warnings")}
                                         icon={CheckCircleIcon}
                                         variant={EmptyStateVariant.sm}
                                     >
                                         <EmptyStateBody>
-                                            {variant === "danger"
+                                            {variant === "error"
                                                 ? _("No errors found.")
                                                 : _("No warnings found.")}
                                         </EmptyStateBody>

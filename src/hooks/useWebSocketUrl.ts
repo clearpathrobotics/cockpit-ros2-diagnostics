@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useState } from "react";
+
 import cockpit from "cockpit";
 
 const _ = cockpit.gettext;
