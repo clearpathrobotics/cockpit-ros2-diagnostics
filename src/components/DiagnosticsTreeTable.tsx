@@ -59,6 +59,7 @@ export const DiagnosticsTreeTable = ({
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
     const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
     const [triggerDrawerFocus, setTriggerDrawerFocus] = useState(false); // Used to ensure focus happens after the drawer renders
+    const [lastExpandedRawName, setLastExpandedRawName] = useState<string | null>(null); // Track last expanded
 
     useEffect(() => {
         if (selectedRawName) {
@@ -169,7 +170,10 @@ export const DiagnosticsTreeTable = ({
     }, []);
 
     useEffect(() => {
-        if (selectedRawName) {
+        if (
+            selectedRawName &&
+            selectedRawName !== lastExpandedRawName // Only expand if changed
+        ) {
             const path = findPathToRawName(diagnostics, selectedRawName);
             if (path && path.length > 1) {
                 // Expand all ancestors (exclude the last, which is the selected node itself)
@@ -179,8 +183,9 @@ export const DiagnosticsTreeTable = ({
                     return Array.from(new Set([...prevExpanded, ...ancestors]));
                 });
             }
+            setLastExpandedRawName(selectedRawName);
         }
-    }, [selectedRawName, diagnostics, findPathToRawName]);
+    }, [selectedRawName, diagnostics, findPathToRawName, lastExpandedRawName]);
 
     const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
 
