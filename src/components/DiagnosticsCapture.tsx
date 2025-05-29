@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Alert, Card, CardBody, Flex, FlexItem, Title } from "@patternfly/react-core";
 
 import cockpit from 'cockpit';
@@ -10,6 +10,18 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [downloadPath, setDownloadPath] = useState<string | null>(null);
+    const [adminAccess, setAdminAccess] = useState<boolean>(false);
+
+    useEffect(() => {
+        const permission = cockpit.permission({ admin: true });
+        const update = () => setAdminAccess(permission.allowed);
+        permission.addEventListener("changed", update);
+        update();
+        return () => {
+            permission.removeEventListener("changed", update);
+            permission.close();
+        };
+    }, []);
 
     const runBash = async (command: string, options: { superuser?: string } = {}) => {
         return await cockpit.spawn(["bash", "-c", command], options);
@@ -90,45 +102,55 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
     return (
         <Card>
             <CardBody>
-                <Flex direction={{ default: 'row' }} spaceItems={{ default: 'spaceItemsMd' }}>
-                    <FlexItem>
-                        <Title headingLevel="h2" size="md"> {_("Capture Diagnostics")} </Title>
-                    </FlexItem>
-                    <FlexItem align={{ default: 'alignRight' }}>
-                        <Button
-                            isLoading={isCapturing}
-                            isDisabled={isCapturing}
-                            onClick={handleCapture}
-                        >
-                            {isCapturing ? _("Generating...") : _("Generate Capture")}
-                        </Button>
-                    </FlexItem>
-                </Flex>
-                {downloadPath && (
-                    <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsMd' }}>
+                <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                    <Flex direction={{ default: 'row' }} spaceItems={{ default: 'spaceItemsMd' }}>
+                        <FlexItem>
+                            <Title headingLevel="h2" size="md"> {_("Capture Diagnostics")} </Title>
+                        </FlexItem>
+                        {adminAccess && (
+                            <FlexItem align={{ default: 'alignRight' }}>
+                                <Button
+                                    isLoading={isCapturing}
+                                    isDisabled={isCapturing}
+                                    onClick={handleCapture}
+                                >
+                                    {isCapturing ? _("Generating...") : _("Generate Capture")}
+                                </Button>
+                            </FlexItem>
+                        )}
+                    </Flex>
+                    {isCapturing && (
+                        <FlexItem align={{ default: 'alignRight' }}>
+                            <p>Diagnostic capture may take several minutes to generate.</p>
+                        </FlexItem>
+                    )}
+                    {!adminAccess && (
+                        <FlexItem>
+                            <p>Enable admin access at the top of the page to enable diagnostics capture feature.</p>
+                        </FlexItem>
+                    )}
+                    {!isCapturing && (
                         <FlexItem>
                             {errorMessage && (
-                                <FlexItem>
-                                    <Alert variant="danger" title={errorMessage} />
-                                </FlexItem>
+                                <Alert variant="danger" title={errorMessage} />
+                            )}
+                            {downloadPath && (
+                                <Alert
+                                    variant="success"
+                                    title={_(`Diagnostics captured successfully (${downloadPath}).`)}
+                                >
+                                    <Button
+                                        variant="link"
+                                        isInline
+                                        onClick={() => downloadFile(downloadPath)}
+                                    >
+                                        {_("Download Diagnostics File")}
+                                    </Button>
+                                </Alert>
                             )}
                         </FlexItem>
-                        <FlexItem>
-                            <Alert
-                                variant="success"
-                                title={_(`Diagnostics captured successfully (${downloadPath}).`)}
-                            >
-                                <Button
-                                    variant="link"
-                                    isInline
-                                    onClick={() => downloadFile(downloadPath)}
-                                >
-                                    {_("Download Diagnostics File")}
-                                </Button>
-                            </Alert>
-                        </FlexItem>
-                    </Flex>
-                )}
+                    )}
+                </Flex>
             </CardBody>
         </Card>
     );
