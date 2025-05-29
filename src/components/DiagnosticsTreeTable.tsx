@@ -129,7 +129,7 @@ export const DiagnosticsTreeTable = ({
                 }}
             >
                 <Td dataLabel={_("Name")} treeRow={treeRow}>
-                    <Title headingLevel="h3" size="sm">{diag.name}</Title>
+                    <Title headingLevel="h4">{diag.name}</Title>
                     {diag.path}
                 </Td>
                 <Td dataLabel={_("Message")}>{diag.message}</Td>
@@ -190,7 +190,7 @@ export const DiagnosticsTreeTable = ({
                 <div style={{ padding: "1rem" }}>
                     <DrawerHead>
                         <span tabIndex={selectedEntry ? 0 : -1} ref={drawerRef}>
-                            <Title headingLevel="h2" size="md">
+                            <Title headingLevel="h3">
                                 Diagnostic Details
                             </Title>
                         </span>
@@ -199,7 +199,7 @@ export const DiagnosticsTreeTable = ({
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
                     </DrawerHead>
-                    <Title headingLevel="h3" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
+                    <Title headingLevel="h4">{selectedEntry.icon} {selectedEntry.name}</Title>
                     <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
                     <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
                     <p><strong>{_("Level")}:</strong> {
@@ -236,16 +236,26 @@ export const DiagnosticsTreeTable = ({
 
     return (
         <Card>
-            <CardTitle>{_("All Diagnostics")}</CardTitle>
             <CardBody>
+                <Title headingLevel="h2">
+                    {_("All Diagnostics")}
+                </Title>
                 <Drawer isExpanded={!!selectedEntry} isInline>
                     <DrawerContent panelContent={drawerPanel}>
                         <DrawerContentBody>
                             <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
                                 <Thead>
                                     <Tr>
-                                        <Th>{_("Name")}</Th>
-                                        <Th>{_("Message")}</Th>
+                                        <Th>
+                                            <Title headingLevel="h3">
+                                                {_("Name")}
+                                            </Title>
+                                        </Th>
+                                        <Th>
+                                            <Title headingLevel="h3">
+                                                {_("Message")}
+                                            </Title>
+                                        </Th>
                                     </Tr>
                                 </Thead>
                                 <Tbody>
@@ -255,7 +265,7 @@ export const DiagnosticsTreeTable = ({
                                             <Td colSpan={2}>
                                                 <Bullseye>
                                                     <EmptyState
-                                                        headingLevel="h2"
+                                                        headingLevel="h3"
                                                         titleText="Connecting"
                                                         icon={Spinner}
                                                         variant={EmptyStateVariant.sm}

@@ -105,7 +105,7 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                 <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
                     <Flex direction={{ default: 'row' }} spaceItems={{ default: 'spaceItemsMd' }}>
                         <FlexItem>
-                            <Title headingLevel="h2" size="md"> {_("Capture Diagnostics")} </Title>
+                            <Title headingLevel="h2"> {_("Capture Diagnostics")} </Title>
                         </FlexItem>
                         {adminAccess && (
                             <FlexItem align={{ default: 'alignRight' }}>
