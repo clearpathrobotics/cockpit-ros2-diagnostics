@@ -22,7 +22,6 @@ import {
     Bullseye,
     Card,
     CardBody,
-    CardTitle,
     Drawer,
     DrawerContent,
     DrawerContentBody,

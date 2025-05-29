@@ -24,7 +24,6 @@ import {
     Title,
     EmptyState,
     EmptyStateVariant,
-    EmptyStateBody,
 } from "@patternfly/react-core";
 import { CheckCircleIcon } from "@patternfly/react-icons";
 import { Table, Thead, Tr, Th, Tbody, Td } from "@patternfly/react-table";
@@ -107,8 +106,7 @@ export const DiagnosticsTable = ({
                                         titleText={variant === "error" ? _("No Errors") : _("No Warnings")}
                                         icon={CheckCircleIcon}
                                         variant={EmptyStateVariant.sm}
-                                    >
-                                    </EmptyState>
+                                    />
                                 </Bullseye>
                             </Td>
                         </Tr>
