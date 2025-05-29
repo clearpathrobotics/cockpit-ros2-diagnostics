@@ -152,6 +152,35 @@ export const DiagnosticsTreeTable = ({
         return null;
     };
 
+    // Helper to find the path (array of rawNames) from root to a given rawName
+    const findPathToRawName = (entries: DiagnosticsEntry[], rawName: string, path: string[] = []): string[] | null => {
+        for (const entry of entries) {
+            const newPath = [...path, entry.rawName];
+            if (entry.rawName === rawName) {
+                return newPath;
+            }
+            const childPath = findPathToRawName(entry.children, rawName, newPath);
+            if (childPath) {
+                return childPath;
+            }
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        if (selectedRawName) {
+            const path = findPathToRawName(diagnostics, selectedRawName);
+            if (path && path.length > 1) {
+                // Expand all ancestors (exclude the last, which is the selected node itself)
+                setExpandedRows(prevExpanded => {
+                    const ancestors = path.slice(0, -1);
+                    // Only add ancestors not already expanded
+                    return Array.from(new Set([...prevExpanded, ...ancestors]));
+                });
+            }
+        }
+    }, [selectedRawName, diagnostics]);
+
     const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
 
     const drawerPanel = (
