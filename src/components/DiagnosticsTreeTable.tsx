@@ -96,7 +96,6 @@ export const DiagnosticsTreeTable = ({
                         : [...prevExpanded, diag.name]
                 );
             },
-            rowIndex,
             props: {
                 isExpanded,
                 isHidden,
@@ -115,6 +114,8 @@ export const DiagnosticsTreeTable = ({
             <TreeRowWrapper
                 key={diag.rawName}
                 row={{ props: treeRow.props }}
+                isSelectable
+                isRowSelected={selectedRawName === diag.rawName}
                 isClickable
                 onClick={() => setSelectedRawName(diag.rawName)}
             >
