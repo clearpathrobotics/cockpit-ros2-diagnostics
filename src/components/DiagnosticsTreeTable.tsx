@@ -17,7 +17,7 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import {
     Bullseye,
@@ -161,7 +161,7 @@ export const DiagnosticsTreeTable = ({
     };
 
     // Helper to find the path (array of rawNames) from root to a given rawName
-    const findPathToRawName = (entries: DiagnosticsEntry[], rawName: string, path: string[] = []): string[] | null => {
+    const findPathToRawName = useCallback((entries: DiagnosticsEntry[], rawName: string, path: string[] = []): string[] | null => {
         for (const entry of entries) {
             const newPath = [...path, entry.rawName];
             if (entry.rawName === rawName) {
@@ -173,7 +173,7 @@ export const DiagnosticsTreeTable = ({
             }
         }
         return null;
-    };
+    }, []);
 
     useEffect(() => {
         if (selectedRawName) {
@@ -187,7 +187,7 @@ export const DiagnosticsTreeTable = ({
                 });
             }
         }
-    }, [selectedRawName, diagnostics]);
+    }, [selectedRawName, diagnostics, findPathToRawName]);
 
     const selectedEntry = selectedRawName ? findEntryByRawName(diagnostics, selectedRawName) : null;
 
