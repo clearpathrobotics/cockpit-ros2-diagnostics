@@ -42,7 +42,15 @@ const collectLeafNodes = (entries: DiagnosticsEntry[]): DiagnosticsEntry[] =>
     );
 
 // Renders a table of diagnostic messages filtered by severity level
-export const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: DiagnosticsEntry[], variant: "danger" | "warning" }) => {
+export const DiagnosticsTable = ({
+    diagnostics,
+    setSelectedRawName,
+    variant
+}: {
+    diagnostics: DiagnosticsEntry[],
+    setSelectedRawName: (rawName: string | null) => void,
+    variant: "danger" | "warning"
+}) => {
     const levelFilter = (level: number) =>
         variant === "danger" ? level >= 2 : level === 1; // Errors: level >= 2, Warnings: level == 1
 
@@ -63,15 +71,19 @@ export const DiagnosticsTable = ({ diagnostics, variant }: { diagnostics: Diagno
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {filteredDiagnostics.map((d, index) => (
-                        <Tr key={index}>
+                    {filteredDiagnostics.map((diag, index) => (
+                        <Tr
+                            key={index}
+                            isClickable
+                            onRowClick={() => setSelectedRawName(diag.rawName)}
+                        >
                             <Td>
                                 <Title headingLevel="h3" size="sm">
-                                    {d.icon} <span style={{ marginLeft: "0.5rem" }}>{d.name || _("N/A")}</span>
+                                    {diag.icon} <span style={{ marginLeft: "0.5rem" }}>{diag.name || _("N/A")}</span>
                                 </Title>
-                                {d.path || _("N/A")}
+                                {diag.path || _("N/A")}
                             </Td>
-                            <Td>{d.message || _("N/A")}</Td>
+                            <Td>{diag.message || _("N/A")}</Td>
                         </Tr>
                     ))}
                     {filteredDiagnostics.length === 0 && (

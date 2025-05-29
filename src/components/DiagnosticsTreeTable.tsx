@@ -46,9 +46,18 @@ import { DiagnosticsEntry } from "../interfaces";
 const _ = cockpit.gettext;
 
 // Renders an expandable TreeTable of diagnostic messages
-export const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnostics: DiagnosticsEntry[], bridgeConnected: boolean }) => {
+export const DiagnosticsTreeTable = ({
+    diagnostics,
+    bridgeConnected,
+    selectedRawName,
+    setSelectedRawName,
+}: {
+    diagnostics: DiagnosticsEntry[],
+    bridgeConnected: boolean,
+    selectedRawName: string | null,
+    setSelectedRawName: (rawName: string | null) => void,
+}) => {
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Use rawName as identifier
     const drawerRef = React.useRef<HTMLSpanElement>(null); // Ref for focus management
 
     useEffect(() => {
@@ -56,10 +65,6 @@ export const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnos
             drawerRef.current.focus(); // Focus the drawer after it is rendered
         }
     }, [selectedRawName]);
-
-    const onRowClick = (entry: DiagnosticsEntry) => {
-        setSelectedRawName(entry.rawName);
-    };
 
     const closeDrawer = () => {
         setSelectedRawName(null);
@@ -111,7 +116,7 @@ export const DiagnosticsTreeTable = ({ diagnostics, bridgeConnected }: { diagnos
                 key={diag.rawName}
                 row={{ props: treeRow.props }}
                 isClickable
-                onClick={() => onRowClick(diag)}
+                onClick={() => setSelectedRawName(diag.rawName)}
             >
                 <Td dataLabel={_("Name")} treeRow={treeRow}>
                     <Title headingLevel="h3" size="sm">{diag.name}</Title>
