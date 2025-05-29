@@ -1,3 +1,13 @@
+cockpit-ros2-diagnostics (0.1.0-1) unstable; urgency=medium
+
+  * Added diagnostic capture feature
+  * Styling improvements to headers and text
+  * Added ability to expand diagnostic tree by clicking anywhere on the entries
+  * Added ability to click on the errors and warnings to expand the tree and details drawer below
+  * Fixed bug in focusing of the diagnostics detail drawer
+
+ -- Hilary Luo <hluo@clearpathrobotics.com>  Thurs, 29 May 2025 16:25:00 +0400
+
 cockpit-ros2-diagnostics (0.0.1-1) UNRELEASED; urgency=low
 
   * Initial release
