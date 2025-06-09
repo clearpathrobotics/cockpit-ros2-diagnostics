@@ -1,5 +1,3 @@
-** This module is under constructions and installation instructions and integration tests will not work yet **
-
 # Cockpit ROS 2 Diagnostics
 
 This is a Cockpit module that is intended to be installed alongside [Cockpit](https://cockpit-project.org/) and connects to the [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge)
@@ -149,6 +147,8 @@ Violations of some rules can be fixed automatically by:
 Rules configuration can be found in the `.stylelintrc.json` file.
 
 ## Running tests locally
+
+** These tests are still under development **
 
 To run the tests locally you must install:
 
