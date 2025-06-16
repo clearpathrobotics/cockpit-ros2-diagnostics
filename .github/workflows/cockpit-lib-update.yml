@@ -1,7 +1,7 @@
 name: cockpit-lib-update
 on:
   schedule:
-    - cron: '0 2 * * 4'
+    - cron: '0 2 1 * *' # Run monthly
   # can be run manually on https://github.com/clearpathrobotics/cockpit-ros2-diagnostics/actions
   workflow_dispatch:
 jobs:

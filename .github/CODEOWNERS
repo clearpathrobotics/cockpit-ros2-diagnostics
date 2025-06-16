@@ -1,2 +1,6 @@
 # Default all changes will request review from:
 * @clearpathrobotics/clearpath-platform-team
+
+package.json @hilary-luo
+.cockpit-ci/container @hilary-luo
+Makefile @hilary-luo
