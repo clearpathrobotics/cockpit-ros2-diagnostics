@@ -44,7 +44,6 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             const commands_usr = [
                 `lsusb -t -v >> ${temp_folder}/usb.log`,
                 `ls -lisah /dev/ >> ${temp_folder}/dev.log`,
-                `source /etc/clearpath/setup.bash && env | grep -e ROS -e RMW >> ${temp_folder}/env.log`,
                 `ip a >> ${temp_folder}/ip.log`,
             ];
 
@@ -59,6 +58,7 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                 `journalctl -b 0 -u clearpath-discovery >> ${temp_folder}/services/discovery_server.log`,
                 `journalctl -b 0 -u clearpath-zenoh-router >> ${temp_folder}/services/zenoh_router.log`,
                 `[ -f "/etc/clearpath/robot.yaml" ] && cp /etc/clearpath/robot.yaml ${temp_folder}/robot.yaml`,
+                `[ -f "/etc/clearpath/setup.bash" ] && source /etc/clearpath/setup.bash && env | grep -e ROS -e RMW >> ${temp_folder}/env.log`,
                 `[ -f "/etc/clearpath/setup.bash" ] && source /etc/clearpath/setup.bash && ros2 doctor --report >> ${temp_folder}/ros2_doctor.log`,
                 `[ -f "/etc/clearpath/setup.bash" ] && source /etc/clearpath/setup.bash && ros2 topic echo --timeout 10 ${namespace}/diagnostics_agg >> ${temp_folder}/ros2_diagnostics.log`, // Timeout to avoid hanging if no messages are published
             ];
