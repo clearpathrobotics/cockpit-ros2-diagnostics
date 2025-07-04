@@ -64,19 +64,34 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             ];
 
             for (const command of commands_su) {
-                const output = await runBash(command, { superuser: "require" });
-                console.log("Command executed successfully:", command, ": ", output);
+                try {
+                    const output = await runBash(command, { superuser: "require" });
+                    console.log("Command executed successfully:", command, ": ", output);
+                } catch (error) {
+                    console.error("Error executing command:", command, error);
+                    continue; // Skip to the next command if one fails
+                }
             }
 
             for (const command of commands_usr) {
-                const output = await runBash(command);
-                console.log("Command executed successfully:", command, ": ", output);
+                try {
+                    const output = await runBash(command);
+                    console.log("Command executed successfully:", command, ": ", output);
+                } catch (error) {
+                    console.error("Error executing command:", command, error);
+                    continue; // Skip to the next command if one fails
+                }
             }
 
             if (await runBash("test -f /etc/clearpath/robot.yaml && echo 'exists'")) {
                 for (const command of commands_clearpath) {
-                    const output = await runBash(command);
-                    console.log("Command executed successfully:", command, ": ", output);
+                    try {
+                        const output = await runBash(command);
+                        console.log("Command executed successfully:", command, ": ", output);
+                    } catch (error) {
+                        console.error("Error executing command:", command, error);
+                        continue; // Skip to the next command if one fails
+                    }
                 }
             }
 
