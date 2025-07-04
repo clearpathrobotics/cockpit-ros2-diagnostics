@@ -119,7 +119,7 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             await runBash(`rm -rf ${temp_folder}`, { superuser: "require" });
             if (failedCommand) {
                 setErrorMessage(failedCommandMessage + "View console log for details.");
-            };
+            }
 
             setDownloadPath(archive_name);
         } catch (error) {
