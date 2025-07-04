@@ -48,6 +48,8 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             ];
 
             const commands_clearpath = [
+                `[ -f "/etc/clearpath/setup.bash" ] && source /etc/clearpath/setup.bash && ros2 daemon stop`,
+                `[ -f "/etc/clearpath/setup.bash" ] && source /etc/clearpath/setup.bash && export ROS_SUPER_CLIENT=True && ros2 daemon start`,
                 `mkdir -p ${temp_folder}/services`,
                 `journalctl -b 0 -u clearpath-platform >> ${temp_folder}/services/platform.log`,
                 `journalctl -b 0 -u clearpath-platform-extras >> ${temp_folder}/services/platform_extras.log`,
