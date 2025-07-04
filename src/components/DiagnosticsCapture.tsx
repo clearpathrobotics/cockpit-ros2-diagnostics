@@ -32,6 +32,9 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
         setErrorMessage(null);
         setDownloadPath(null);
 
+        let failedCommand = false;
+        let failedCommandMessage = "Incomplete diagnostic capture: Failed to execute commands: ";
+
         try {
             const temp_folder = (await runBash("mktemp -d")).trim();
 
@@ -71,6 +74,8 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                     console.log("Command executed successfully:", command, ": ", output);
                 } catch (error) {
                     console.error("Error executing command:", command, error);
+                    failedCommandMessage += command + "; ";
+                    failedCommand = true;
                     continue; // Skip to the next command if one fails
                 }
             }
@@ -81,6 +86,8 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                     console.log("Command executed successfully:", command, ": ", output);
                 } catch (error) {
                     console.error("Error executing command:", command, error);
+                    failedCommandMessage += command + "; ";
+                    failedCommand = true;
                     continue; // Skip to the next command if one fails
                 }
             }
@@ -92,6 +99,8 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                         console.log("Command executed successfully:", command, ": ", output);
                     } catch (error) {
                         console.error("Error executing command:", command, error);
+                        failedCommandMessage += command + "; ";
+                        failedCommand = true;
                         continue; // Skip to the next command if one fails
                     }
                 }
@@ -100,12 +109,17 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             const hostname = (await runBash("hostname")).trim();
             const home = (await runBash("echo $HOME")).trim();
             const current_datetime = (await runBash("date +%Y-%m-%d_%H-%M-%S")).trim();
-            const archive_name = `${home}/diagnostic_captures/${hostname}_${current_datetime}.tar.gz`;
+            let archive_name = `${home}/diagnostic_captures/${hostname}_${current_datetime}`;
+            if (failedCommand) archive_name += "_incomplete";
+            archive_name += ".tar.gz";
             console.log("Archive name:", archive_name);
             await runBash(`mkdir -p ${home}/diagnostic_captures`);
             await runBash(`cd ${temp_folder} && tar -czvf ${archive_name} .`, { superuser: "require" });
             console.log("tar command executed successfully");
             await runBash(`rm -rf ${temp_folder}`, { superuser: "require" });
+            if (failedCommand) {
+                setErrorMessage(failedCommandMessage + "View console log for details.");
+            };
 
             setDownloadPath(archive_name);
         } catch (error) {
