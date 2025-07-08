@@ -21,7 +21,6 @@ import React from 'react';
 import {
     Alert,
     Bullseye,
-    Title,
     EmptyState,
     EmptyStateVariant,
 } from "@patternfly/react-core";
@@ -58,27 +57,16 @@ export const DiagnosticsTable = ({
     return (
         <Alert
             variant={variant === "error" ? "danger" : "warning"}
-            title={
-                <Title headingLevel="h2">
-                    {variant === "error" ? _("Errors") : _("Warnings")}
-                </Title>
-            }
-            component='h2'
+            title={variant === "error" ? _("Errors") : _("Warnings")}
             isInline
+            component='h2'
+            className='diagnostics-title'
         >
             <Table aria-label={`${variant === "error" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
                 <Thead>
                     <Tr>
-                        <Th>
-                            <Title headingLevel="h3">
-                                {_("Name")}
-                            </Title>
-                        </Th>
-                        <Th>
-                            <Title headingLevel="h3">
-                                {_("Message")}
-                            </Title>
-                        </Th>
+                        <Th>{_("Name")}</Th>
+                        <Th>{_("Message")}</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
@@ -89,9 +77,8 @@ export const DiagnosticsTable = ({
                             onRowClick={() => setSelectedRawName(diag.rawName)}
                         >
                             <Td>
-                                <Title headingLevel="h4">
-                                    {diag.icon} <span style={{ marginLeft: "0.5rem" }}>{diag.name || _("N/A")}</span>
-                                </Title>
+                                {diag.icon} <span className="diagnostics-table-name" style={{ marginLeft: "0.5rem" }}>{diag.name || _("N/A")}</span>
+                                <br />
                                 {diag.path || _("N/A")}
                             </Td>
                             <Td>{diag.message || _("N/A")}</Td>
@@ -102,7 +89,7 @@ export const DiagnosticsTable = ({
                             <Td colSpan={2}>
                                 <Bullseye>
                                     <EmptyState
-                                        headingLevel="h4"
+                                        headingLevel="h2"
                                         titleText={variant === "error" ? _("No Errors") : _("No Warnings")}
                                         icon={CheckCircleIcon}
                                         variant={EmptyStateVariant.sm}

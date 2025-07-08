@@ -22,6 +22,7 @@ import {
     Bullseye,
     Card,
     CardBody,
+    CardTitle,
     Drawer,
     DrawerContent,
     DrawerContentBody,
@@ -129,7 +130,8 @@ export const DiagnosticsTreeTable = ({
                 }}
             >
                 <Td dataLabel={_("Name")} treeRow={treeRow}>
-                    <Title headingLevel="h4">{diag.name}</Title>
+                    <span className="diagnostics-table-name">{diag.name}</span>
+                    <br />
                     {diag.path}
                 </Td>
                 <Td dataLabel={_("Message")}>{diag.message}</Td>
@@ -204,7 +206,7 @@ export const DiagnosticsTreeTable = ({
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
                     </DrawerHead>
-                    <Title headingLevel="h4">{selectedEntry.icon} {selectedEntry.name}</Title>
+                    <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
                     <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
                     <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
                     <p><strong>{_("Level")}:</strong> {
@@ -241,26 +243,16 @@ export const DiagnosticsTreeTable = ({
 
     return (
         <Card>
+            <CardTitle component="h2" className="diagnostics-title">{_("All Diagnostics")}</CardTitle>
             <CardBody>
-                <Title headingLevel="h2">
-                    {_("All Diagnostics")}
-                </Title>
                 <Drawer isExpanded={!!selectedEntry} isInline>
                     <DrawerContent panelContent={drawerPanel}>
                         <DrawerContentBody>
                             <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
                                 <Thead>
                                     <Tr>
-                                        <Th>
-                                            <Title headingLevel="h3">
-                                                {_("Name")}
-                                            </Title>
-                                        </Th>
-                                        <Th>
-                                            <Title headingLevel="h3">
-                                                {_("Message")}
-                                            </Title>
-                                        </Th>
+                                        <Th>{_("Name")}</Th>
+                                        <Th>{_("Message")}</Th>
                                     </Tr>
                                 </Thead>
                                 <Tbody>
@@ -270,7 +262,7 @@ export const DiagnosticsTreeTable = ({
                                             <Td colSpan={2}>
                                                 <Bullseye>
                                                     <EmptyState
-                                                        headingLevel="h3"
+                                                        headingLevel="h2"
                                                         titleText="Connecting"
                                                         icon={Spinner}
                                                         variant={EmptyStateVariant.sm}
