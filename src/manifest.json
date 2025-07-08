@@ -1,6 +1,6 @@
 {
     "requires": {
-        "cockpit": "137"
+        "cockpit": "336"
     },
 
     "menu": {
