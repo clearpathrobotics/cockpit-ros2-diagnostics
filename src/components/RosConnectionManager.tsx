@@ -181,15 +181,6 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                 onDiagnosticsUpdate([]);
                 setTimeout(connectToWebSocket, retryDelay);
             });
-
-            return () => {
-                diagnosticsTopic.unsubscribe();
-                onConnectionStatusChange(false);
-                ros.close();
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-            };
         };
 
         connectToWebSocket();
