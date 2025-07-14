@@ -137,8 +137,36 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
             ros.on("connection", () => {
                 console.log("Connected to Foxglove bridge at " + url);
-                console.log(`Subscribing to topic: ${diagnosticsTopic.name}`);
                 onConnectionStatusChange(true);
+                diagnosticsTopic.subscribe((message) => {
+                    // Clear the timeout if a new message is received
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+
+                    // Process incoming diagnostics messages
+                    if (Array.isArray(message.status)) {
+                        const diagnosticsTree = buildDiagnosticsTree(
+                            message.status.map(({ name, message, level, hardware_id, values }) => ({
+                                name,
+                                message,
+                                level: level !== undefined ? level : -1,
+                                hardware_id,
+                                values,
+                            }))
+                        );
+                        onDiagnosticsUpdate(diagnosticsTree);
+                    } else {
+                        console.warn("Unexpected diagnostics data format:", message);
+                    }
+
+                    // Set a timeout to clear stale diagnostics if no new message is received
+                    timeoutId = setTimeout(() => {
+                        console.warn("No diagnostics message received for 5 seconds. Clearing stale diagnostics.");
+                        onDiagnosticsUpdate([]);
+                    }, timeoutDuration);
+                });
+                console.log(`Subscribed to topic: ${diagnosticsTopic.name}`);
             });
 
             ros.on("error", (error) => {
@@ -152,35 +180,6 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                 console.log("Connection to Foxglove bridge closed");
                 onDiagnosticsUpdate([]);
                 setTimeout(connectToWebSocket, retryDelay);
-            });
-
-            diagnosticsTopic.subscribe((message) => {
-                // Clear the timeout if a new message is received
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-
-                // Process incoming diagnostics messages
-                if (Array.isArray(message.status)) {
-                    const diagnosticsTree = buildDiagnosticsTree(
-                        message.status.map(({ name, message, level, hardware_id, values }) => ({
-                            name,
-                            message,
-                            level: level !== undefined ? level : -1,
-                            hardware_id,
-                            values,
-                        }))
-                    );
-                    onDiagnosticsUpdate(diagnosticsTree);
-                } else {
-                    console.warn("Unexpected diagnostics data format:", message);
-                }
-
-                // Set a timeout to clear stale diagnostics if no new message is received
-                timeoutId = setTimeout(() => {
-                    console.warn("No diagnostics message received for 5 seconds. Clearing stale diagnostics.");
-                    onDiagnosticsUpdate([]);
-                }, timeoutDuration);
             });
 
             return () => {
