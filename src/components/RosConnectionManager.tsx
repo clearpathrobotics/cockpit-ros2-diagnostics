@@ -120,12 +120,20 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             return;
         }
 
+        const ros = new ROSLIB.Ros({ url });
+
+        const diagnosticsTopic = new ROSLIB.Topic({
+            ros,
+            name: `${namespace}/diagnostics_agg`,
+            messageType: "diagnostic_msgs/DiagnosticArray",
+        });
+
         const retryDelay = 3000; // 3 seconds
         const timeoutDuration = 5000; // 5 seconds
         let timeoutId: NodeJS.Timeout | null = null;
 
         const connectToWebSocket = () => {
-            const ros = new ROSLIB.Ros({ url });
+            ros.connect(url);
 
             ros.on("connection", () => {
                 console.log("Connected to Foxglove bridge at " + url);
@@ -144,12 +152,6 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                 console.log("Connection to Foxglove bridge closed");
                 onDiagnosticsUpdate([]);
                 setTimeout(connectToWebSocket, retryDelay);
-            });
-
-            const diagnosticsTopic = new ROSLIB.Topic({
-                ros,
-                name: `${namespace}/diagnostics_agg`,
-                messageType: "diagnostic_msgs/DiagnosticArray",
             });
 
             diagnosticsTopic.subscribe((message) => {
