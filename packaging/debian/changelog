@@ -1,3 +1,13 @@
+cockpit-ros2-diagnostics (0.1.1-1) unstable; urgency=medium
+
+  * Fixed diagnostic capture with FastDDS Discovery Server Mode
+  * Require Cockpit with Patternfly 6
+  * Package-lock update
+  * Clean foxglove bridge connection logic
+  * Styling improvements to headers and text to line up with PF6 update
+
+ -- Hilary Luo <hluo@clearpathrobotics.com>  Fri, 25 July 2025 12:28:00 +0400
+
 cockpit-ros2-diagnostics (0.1.0-1) unstable; urgency=medium
 
   * Added diagnostic capture feature
