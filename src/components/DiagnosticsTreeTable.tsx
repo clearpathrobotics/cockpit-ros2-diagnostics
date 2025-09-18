@@ -269,7 +269,7 @@ export const DiagnosticsTreeTable = ({
                                                     >
                                                         <EmptyStateBody>
                                                             { bridgeConnected
-                                                                ? _("Listening for the diagnostics topic...")
+                                                                ? _("Waiting for diagnostics messages...")
                                                                 : _("Attempting to connect to the Foxglove bridge...")}
                                                         </EmptyStateBody>
                                                     </EmptyState>
