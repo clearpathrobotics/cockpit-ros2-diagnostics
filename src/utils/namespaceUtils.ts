@@ -21,10 +21,10 @@
 export const sanitizeNamespace = (namespace: string): string => {
     let sanitizedNamespace = namespace
             .replace(/[^a-zA-Z0-9_/]/g, "") // Remove invalid characters
-            .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
+            .replace(/^\d+/, "") // Drop leading numbers prior to the first letter or underscore
             .replace(/_+/g, "_") // Replace consecutive underscores with a single underscore
-            .replace(/^\/|\/$/g, "") // Trim leading and trailing slashes
-            .replace(/^\d+/, ""); // Drop leading numbers prior to the first letter or underscore
+            .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
+            .replace(/^\/|\/$/g, ""); // Trim leading and trailing slashes
 
     // Add a leading slash if the sanitized namespace is not empty
     if (sanitizedNamespace) {
