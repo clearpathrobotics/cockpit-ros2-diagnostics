@@ -33,3 +33,10 @@ export const sanitizeNamespace = (namespace: string): string => {
 
     return sanitizedNamespace;
 };
+
+export const sameNamespace = (ns1: string, ns2: string): boolean => {
+    if (ns1.replace(/^\/|\/$/g, "") !== ns2.replace(/^\/|\/$/g, "")) {
+        return false;
+    }
+    return true;
+};

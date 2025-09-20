@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 
 import cockpit from "cockpit";
 
-import { sanitizeNamespace } from "../utils/namespaceUtils";
+import { sameNamespace, sanitizeNamespace } from "../utils/namespaceUtils";
 
 const _ = cockpit.gettext;
 
@@ -31,11 +31,16 @@ export const useNamespace = (defaultNamespace: string) => {
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
     const [manualEntryRequired, setManualEntryRequired] = useState(false);
 
+    const setManualNamespace = (namespace: string) => {
+        setNamespace(sanitizeNamespace(namespace));
+    };
+
     useEffect(() => {
         const yamlFile = cockpit.file("/etc/clearpath/robot.yaml");
 
         const updateNamespace = (content: string | null) => {
             if (content) {
+                setManualEntryRequired(false);
                 const trimmedContent = content.trim();
                 let originalNamespace = "";
                 let sanitizedNamespace = "";
@@ -60,7 +65,7 @@ export const useNamespace = (defaultNamespace: string) => {
                 }
 
                 // Check if the sanitized namespace differs from the original
-                if (originalNamespace.replace(/^\/|\/$/g, "") !== sanitizedNamespace.replace(/^\/|\/$/g, "")) {
+                if (!sameNamespace(originalNamespace, sanitizedNamespace)) {
                     const message = `Invalid namespace: "${originalNamespace}", trying to connect using: "${sanitizedNamespace}"`;
                     console.warn(message);
                     setInvalidNamespaceMessage(message);
@@ -68,9 +73,6 @@ export const useNamespace = (defaultNamespace: string) => {
                     setInvalidNamespaceMessage(null);
                 }
             } else {
-                const message = _("'robot.yaml' file not found or empty");
-                console.warn(message);
-                setInvalidNamespaceMessage(message);
                 setManualEntryRequired(true);
             }
         };
@@ -79,5 +81,5 @@ export const useNamespace = (defaultNamespace: string) => {
         return yamlFile.close;
     }, []);
 
-    return { namespace, setNamespace, invalidNamespaceMessage, manualEntryRequired };
+    return { namespace, setManualNamespace, invalidNamespaceMessage, manualEntryRequired };
 };

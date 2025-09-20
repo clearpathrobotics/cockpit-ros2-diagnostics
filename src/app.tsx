@@ -29,13 +29,19 @@ import { RosConnectionManager } from "./components/RosConnectionManager";
 import { useNamespace } from "./hooks/useNamespace";
 import { useWebSocketUrl } from "./hooks/useWebSocketUrl";
 import { DiagnosticsCapture } from "./components/DiagnosticsCapture";
+import { ManualNamespace } from "./components/ManualNamespace";
 
 const _ = cockpit.gettext;
 
-const DEFAULT_NAMESPACE = "default_namespace";
+const DEFAULT_NAMESPACE = "";
 
 export const Application = () => {
-    const { namespace, invalidNamespaceMessage } = useNamespace(DEFAULT_NAMESPACE);
+    const {
+        namespace,
+        setManualNamespace,
+        invalidNamespaceMessage,
+        manualEntryRequired
+    } = useNamespace(DEFAULT_NAMESPACE);
     const url = useWebSocketUrl(); // Use custom hook for WebSocket URL
     const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
     const [bridgeConnected, setBridgeConnected] = useState(false);
@@ -52,6 +58,12 @@ export const Application = () => {
                         <Alert
                             variant="danger"
                             title={invalidNamespaceMessage} // Display error message if namespace is invalid
+                        />
+                    )}
+                    { manualEntryRequired && (
+                        <ManualNamespace
+                            setManualNamespace={setManualNamespace}
+                            namespace={namespace}
                         />
                     )}
                     <DiagnosticsCapture namespace={namespace} />
