@@ -19,10 +19,20 @@
 
 import React, { useState } from 'react';
 
-import { Alert, Page, PageSection, Stack, Title } from "@patternfly/react-core";
+import {
+    Alert,
+    Button,
+    Flex,
+    FlexItem,
+    Page,
+    PageSection,
+    Stack,
+    Title
+} from "@patternfly/react-core";
+import { PauseIcon, PlayIcon } from "@patternfly/react-icons";
 
 import cockpit from 'cockpit';
-import { DiagnosticsEntry } from "./interfaces";
+import { DiagnosticsStatus } from "./interfaces";
 import { DiagnosticsTable } from "./components/DiagnosticsTable";
 import { DiagnosticsTreeTable } from "./components/DiagnosticsTreeTable";
 import { RosConnectionManager } from "./components/RosConnectionManager";
@@ -30,6 +40,8 @@ import { useNamespace } from "./hooks/useNamespace";
 import { useWebSocketUrl } from "./hooks/useWebSocketUrl";
 import { DiagnosticsCapture } from "./components/DiagnosticsCapture";
 import { ManualNamespace } from "./components/ManualNamespace";
+import { HistorySelection } from "./components/HistorySelection";
+import { useDiagHistory } from './hooks/useDiagHistory';
 
 const _ = cockpit.gettext;
 
@@ -41,17 +53,50 @@ export const Application = () => {
         manualEntryRequired
     } = useNamespace();
     const url = useWebSocketUrl(); // Use custom hook for WebSocket URL
-    const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
+    const [diagStatusDisplay, setDiagStatusDisplay] = useState<DiagnosticsStatus | null>(null); // DiagStatus data for display
     const [bridgeConnected, setBridgeConnected] = useState(false);
     const [selectedRawName, setSelectedRawName] = useState<string | null>(null); // Used as identifier for diag entry so that values get updated
+    const [isPaused, setIsPaused] = useState(false); // Pause state for diagnostics updates
+
+    const {
+        diagHistory,
+        updateDiagHistory,
+        clearDiagHistory
+    } = useDiagHistory(isPaused);
+
+    // Extract diagnostics array from DiagnosticsStatus for components that need it
+    const diagnostics = diagStatusDisplay?.diagnostics || [];
 
     return (
         <Page id="ros2-diag" className='no-masthead-sidebar'>
             <PageSection>
                 <Stack hasGutter>
-                    <Title headingLevel="h1" size="2xl">
-                        {_("ROS 2 Diagnostics")}
-                    </Title>
+                    <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+                        <FlexItem>
+                            <Title headingLevel="h1" size="2xl">
+                                {_("ROS 2 Diagnostics")}
+                            </Title>
+                        </FlexItem>
+                        <FlexItem>
+                            <Button
+                                variant="secondary"
+                                icon={isPaused ? <PlayIcon /> : <PauseIcon />}
+                                onClick={() => {
+                                    if (isPaused) clearDiagHistory();
+                                    setIsPaused(!isPaused);
+                                }}
+                                aria-label={isPaused ? _("Resume diagnostics updates") : _("Pause diagnostics updates")}
+                            >
+                                {isPaused ? _("Resume") : _("Pause")}
+                            </Button>
+                        </FlexItem>
+                    </Flex>
+                    <HistorySelection
+                        diagHistory={diagHistory}
+                        setDiagStatusDisplay={setDiagStatusDisplay}
+                        isPaused={isPaused}
+                        setIsPaused={setIsPaused}
+                    />
                     {invalidNamespaceMessage && (
                         <Alert
                             variant="danger"
@@ -70,8 +115,9 @@ export const Application = () => {
                             <RosConnectionManager
                                 namespace={namespace}
                                 url={url}
-                                onDiagnosticsUpdate={setDiagnostics}
+                                onDiagnosticsUpdate={updateDiagHistory}
                                 onConnectionStatusChange={setBridgeConnected}
+                                onClearHistory={clearDiagHistory}
                             />
                             {diagnostics.length > 0 && (
                                 <>
