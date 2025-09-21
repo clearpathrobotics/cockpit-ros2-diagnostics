@@ -5,6 +5,7 @@ import {
 } from '@patternfly/react-core';
 
 import { DiagnosticsStatus } from "../interfaces";
+import { HISTORY_SIZE } from '../hooks/useDiagHistory';
 
 export const HistorySelection = ({
     diagHistory,
@@ -29,6 +30,16 @@ export const HistorySelection = ({
 
     return (
         <ProgressStepper isCenterAligned aria-label="Diagnostics History">
+            {
+                Array.from({ length: HISTORY_SIZE - diagHistory.length }).map((_, index) => (
+                    <ProgressStep
+                        key={index}
+                        id={`blank-step-${index}`}
+                        titleId={`blank-step-${index}-title`}
+                    />
+                ))
+            }
+
             {diagHistory.map((diagStatus, index) => {
                 const variant = diagStatus.level >= 2
                     ? "danger"
@@ -49,9 +60,7 @@ export const HistorySelection = ({
                             setNegIndex(index - diagHistory.length);
                         }}
                         style={{ cursor: 'pointer' }}
-                    >
-                        {(index % 10 === 0 || index === diagHistory.length - 1) ? new Date(diagStatus.timestamp).toLocaleTimeString() : null}
-                    </ProgressStep>
+                    />
                 );
             })}
         </ProgressStepper>

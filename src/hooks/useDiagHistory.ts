@@ -21,7 +21,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 
 import { DiagnosticsStatus } from "../interfaces";
 
-const HISTORY_SIZE = 30;
+export const HISTORY_SIZE = 30;
 
 export const useDiagHistory = (isPaused: boolean) => {
     const [diagHistory, setDiagHistory] = useState<DiagnosticsStatus[]>([]);
