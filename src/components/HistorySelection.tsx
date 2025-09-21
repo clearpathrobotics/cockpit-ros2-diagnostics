@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
     ProgressStepper,
-    ProgressStep
+    ProgressStep,
+    Flex,
+    FlexItem
 } from '@patternfly/react-core';
 
 import { DiagnosticsStatus } from "../interfaces";
@@ -29,40 +31,54 @@ export const HistorySelection = ({
     }, [diagHistory, setDiagStatusDisplay, isPaused]);
 
     return (
-        <ProgressStepper isCenterAligned aria-label="Diagnostics History">
-            {
-                Array.from({ length: HISTORY_SIZE - diagHistory.length }).map((_, index) => (
-                    <ProgressStep
-                        key={index}
-                        id={`blank-step-${index}`}
-                        titleId={`blank-step-${index}-title`}
-                    />
-                ))
-            }
+        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsNone' }}>
+            <FlexItem>
+                <ProgressStepper isCenterAligned aria-label="Diagnostics History">
+                    {
+                        Array.from({ length: HISTORY_SIZE - diagHistory.length }).map((_, index) => (
+                            <ProgressStep
+                                key={index}
+                                id={`blank-step-${index}`}
+                                titleId={`blank-step-${index}-title`}
+                            />
+                        ))
+                    }
 
-            {diagHistory.map((diagStatus, index) => {
-                const variant = diagStatus.level >= 2
-                    ? "danger"
-                    : diagStatus.level === 1
-                        ? "warning"
-                        : "success";
+                    {diagHistory.map((diagStatus, index) => {
+                        const variant = diagStatus.level >= 2
+                            ? "danger"
+                            : diagStatus.level === 1
+                                ? "warning"
+                                : "success";
 
-                return (
-                    <ProgressStep
-                        key={index}
-                        variant={((diagHistory.length + negIndex) === index) ? "info" : variant}
-                        id={`history-step-${index}`}
-                        titleId={`history-step-${index}-title`}
-                        aria-label={`diagnostics snapshot ${index + 1}`}
-                        onClick={() => {
-                            setDiagStatusDisplay(diagStatus);
-                            setIsPaused(true);
-                            setNegIndex(index - diagHistory.length);
-                        }}
-                        style={{ cursor: 'pointer' }}
-                    />
-                );
-            })}
-        </ProgressStepper>
+                        return (
+                            <ProgressStep
+                                key={index}
+                                variant={((diagHistory.length + negIndex) === index) ? "info" : variant}
+                                id={`history-step-${index}`}
+                                titleId={`history-step-${index}-title`}
+                                aria-label={`diagnostics snapshot ${index + 1}`}
+                                onClick={() => {
+                                    setDiagStatusDisplay(diagStatus);
+                                    setIsPaused(true);
+                                    setNegIndex(index - diagHistory.length);
+                                }}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        );
+                    })}
+                </ProgressStepper>
+            </FlexItem>
+            <FlexItem>
+                <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+                    <FlexItem>
+                        Oldest Timestamp: {diagHistory.length > 0 ? new Date(diagHistory[0].timestamp).toLocaleTimeString() : 'N/A'}
+                    </FlexItem>
+                    <FlexItem>
+                        Latest Timestamp: {diagHistory.length > 0 ? new Date(diagHistory[diagHistory.length - 1].timestamp).toLocaleTimeString() : 'N/A'}
+                    </FlexItem>
+                </Flex>
+            </FlexItem>
+        </Flex>
     );
 };
