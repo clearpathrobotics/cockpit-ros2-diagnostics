@@ -32,7 +32,6 @@ import * as ROSLIB from "../roslib/index";
 interface RosConnectionManagerProps {
     namespace: string;
     url: string | null;
-    defaultNamespace: string;
     onDiagnosticsUpdate: (diagnostics: DiagnosticsEntry[]) => void;
     onConnectionStatusChange: (connected: boolean) => void;
 }
@@ -106,7 +105,6 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
 export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
     namespace,
     url,
-    defaultNamespace,
     onDiagnosticsUpdate,
     onConnectionStatusChange,
 }) => {
@@ -194,7 +192,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             retryConnection = false;
             ros.close();
         };
-    }, [namespace, url, defaultNamespace, onDiagnosticsUpdate, onConnectionStatusChange]);
+    }, [namespace, url, onDiagnosticsUpdate, onConnectionStatusChange]);
 
     return null; // This component does not render anything
 };

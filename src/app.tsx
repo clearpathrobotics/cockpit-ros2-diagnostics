@@ -33,15 +33,13 @@ import { ManualNamespace } from "./components/ManualNamespace";
 
 const _ = cockpit.gettext;
 
-const DEFAULT_NAMESPACE = "";
-
 export const Application = () => {
     const {
         namespace,
         setManualNamespace,
         invalidNamespaceMessage,
         manualEntryRequired
-    } = useNamespace(DEFAULT_NAMESPACE);
+    } = useNamespace();
     const url = useWebSocketUrl(); // Use custom hook for WebSocket URL
     const [diagnostics, setDiagnostics] = useState<DiagnosticsEntry[]>([]); // Diagnostics data
     const [bridgeConnected, setBridgeConnected] = useState(false);
@@ -72,7 +70,6 @@ export const Application = () => {
                             <RosConnectionManager
                                 namespace={namespace}
                                 url={url}
-                                defaultNamespace={DEFAULT_NAMESPACE}
                                 onDiagnosticsUpdate={setDiagnostics}
                                 onConnectionStatusChange={setBridgeConnected}
                             />

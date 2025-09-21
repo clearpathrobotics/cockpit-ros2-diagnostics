@@ -26,8 +26,8 @@ import { sameNamespace, sanitizeNamespace } from "../utils/namespaceUtils";
 const _ = cockpit.gettext;
 
 // Custom hook to manage namespace
-export const useNamespace = (defaultNamespace: string) => {
-    const [namespace, setNamespace] = useState(defaultNamespace);
+export const useNamespace = () => {
+    const [namespace, setNamespace] = useState("");
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
     const [manualEntryRequired, setManualEntryRequired] = useState(false);
 
