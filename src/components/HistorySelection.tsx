@@ -24,9 +24,13 @@ export const HistorySelection = ({
 
     useEffect(() => {
         // On initial load, set to the latest history entry if available
-        if (!isPaused && diagHistory.length > 0) {
+        if (!isPaused) {
             setNegIndex(-1);
-            setDiagStatusDisplay(diagHistory[diagHistory.length - 1]);
+            if (diagHistory.length > 0) {
+                setDiagStatusDisplay(diagHistory[diagHistory.length - 1]);
+            } else {
+                setDiagStatusDisplay(null);
+            }
         }
     }, [diagHistory, setDiagStatusDisplay, isPaused]);
 
