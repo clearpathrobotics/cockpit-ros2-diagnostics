@@ -78,6 +78,10 @@ export const HistorySelection = ({
                     <FlexItem>
                         Oldest Timestamp: {diagHistory.length > 0 ? new Date(diagHistory[0].timestamp).toLocaleTimeString() : 'N/A'}
                     </FlexItem>
+                    {isPaused &&
+                        <FlexItem>
+                            Selected Timestamp: {diagHistory.length > 0 ? new Date(diagHistory[diagHistory.length + negIndex].timestamp).toLocaleTimeString() : 'N/A'}
+                        </FlexItem>}
                     <FlexItem>
                         Latest Timestamp: {diagHistory.length > 0 ? new Date(diagHistory[diagHistory.length - 1].timestamp).toLocaleTimeString() : 'N/A'}
                     </FlexItem>
