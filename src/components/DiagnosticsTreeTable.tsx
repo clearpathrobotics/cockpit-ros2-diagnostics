@@ -249,12 +249,14 @@ export const DiagnosticsTreeTable = ({
                     <DrawerContent panelContent={drawerPanel}>
                         <DrawerContentBody>
                             <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
-                                <Thead>
-                                    <Tr>
-                                        <Th>{_("Name")}</Th>
-                                        <Th>{_("Message")}</Th>
-                                    </Tr>
-                                </Thead>
+                                {diagnostics.length > 0 && (
+                                    <Thead>
+                                        <Tr>
+                                            <Th>{_("Name")}</Th>
+                                            <Th>{_("Message")}</Th>
+                                        </Tr>
+                                    </Thead>
+                                )}
                                 <Tbody>
                                     {renderRows(diagnostics)}
                                     {(diagnostics.length === 0) && (
@@ -265,7 +267,7 @@ export const DiagnosticsTreeTable = ({
                                                         headingLevel="h2"
                                                         titleText="Connecting"
                                                         icon={Spinner}
-                                                        variant={EmptyStateVariant.sm}
+                                                        variant={EmptyStateVariant.xs}
                                                     >
                                                         <EmptyStateBody>
                                                             { bridgeConnected
