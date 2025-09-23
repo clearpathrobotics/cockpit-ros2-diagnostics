@@ -17,7 +17,7 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Icon } from "@patternfly/react-core";
 import {
     CheckCircleIcon,
@@ -125,6 +125,9 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
     onConnectionStatusChange,
     onClearHistory
 }) => {
+    const staleTimeoutId = useRef(0);
+    const retryTimeoutId = useRef(0);
+
     useEffect(() => {
         if (!url) {
             console.warn("WebSocket URL is not set correctly. Skipping WebSocket configuration.");
@@ -142,11 +145,11 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
         const retryDelay = 3000; // 3 seconds
         const timeoutDuration = 5000; // 5 seconds
-        let staleTimeoutId: NodeJS.Timeout | null = null;
-        let retryTimeoutId: NodeJS.Timeout | null = null;
         let retryConnection = true;
 
         const connectToWebSocket = () => {
+            clearTimeout(staleTimeoutId.current);
+            clearTimeout(retryTimeoutId.current);
             ros.connect(url);
 
             ros.on("connection", () => {
@@ -156,7 +159,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
                 diagnosticsTopic.subscribe((message) => {
                     // Clear the timeout if a new message is received
-                    clearTimeout(staleTimeoutId);
+                    clearTimeout(staleTimeoutId.current);
 
                     // Process incoming diagnostics messages
                     if (Array.isArray(message.status)) {
@@ -198,7 +201,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                     }
 
                     // Set a timeout to clear stale diagnostics if no new message is received
-                    staleTimeoutId = setTimeout(() => {
+                    staleTimeoutId.current = setTimeout(() => {
                         console.warn("No diagnostics message received for 5 seconds. Clearing stale diagnostics.");
                         onClearHistory();
                     }, timeoutDuration);
@@ -215,11 +218,11 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                 onConnectionStatusChange(false);
                 console.log("Connection to Foxglove bridge closed");
                 onClearHistory();
-                clearTimeout(staleTimeoutId);
-                clearTimeout(retryTimeoutId);
+                clearTimeout(staleTimeoutId.current);
+                clearTimeout(retryTimeoutId.current);
                 if (retryConnection) {
                     console.log("Retrying WebSocket connection...");
-                    retryTimeoutId = setTimeout(connectToWebSocket, retryDelay);
+                    retryTimeoutId.current = setTimeout(connectToWebSocket, retryDelay);
                 }
             });
         };
@@ -231,6 +234,8 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             console.log(`Cleaning up connection for namespace ${namespace}`);
             diagnosticsTopic.unsubscribe();
             retryConnection = false;
+            clearTimeout(staleTimeoutId.current);
+            clearTimeout(retryTimeoutId.current);
             ros.close();
         };
     }, [namespace, url, onDiagnosticsUpdate, onConnectionStatusChange, onClearHistory]);
