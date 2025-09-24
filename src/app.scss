@@ -18,3 +18,8 @@
     font-size: var(--pf-t--global--font--size--md);
     font-weight: var(--pf-t--global--font--weight--heading--default);
 }
+
+.diagnostics-no-margin {
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+}
