@@ -20,9 +20,14 @@
 // Sanitize the namespace to ensure it is valid and formatted correctly
 export const sanitizeNamespace = (namespace: string): string => {
     let sanitizedNamespace = namespace
-            .replace(/[^a-zA-Z0-9_/]/g, "") // Remove invalid characters
-            .replace(/^\d+/, "") // Drop leading numbers prior to the first letter or underscore
+    // Remove invalid characters, must happen first
+            .replace(/[^a-zA-Z0-9_/]/g, "")
+    // Address repeated characters after all mid-string removals complete
             .replace(/_+/g, "_") // Replace consecutive underscores with a single underscore
+            .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
+    // Address leading/trailing issues last, repetition to address edge cases
+            .replace(/^\d+/, "") // Drop leading numbers prior to the first letter or underscore
+            .replace(/\/\d+/g, "/") // Drop numbers after slashes prior to the first letter or underscore
             .replace(/\/+/g, "/") // Replace consecutive slashes with a single slash
             .replace(/^\/|\/$/g, ""); // Trim leading and trailing slashes
 
