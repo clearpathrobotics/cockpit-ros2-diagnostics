@@ -29,3 +29,9 @@ export interface DiagnosticsEntry {
     children: DiagnosticsEntry[];
     icon: JSX.Element | null;
 }
+
+export interface DiagnosticsStatus {
+    timestamp: number;
+    level: number;
+    diagnostics: DiagnosticsEntry[];
+}

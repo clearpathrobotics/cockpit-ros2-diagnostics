@@ -26,15 +26,31 @@ import {
     QuestionCircleIcon,
 } from "@patternfly/react-icons";
 
-import { DiagnosticsEntry } from "../interfaces";
+import { DiagnosticsEntry, DiagnosticsStatus } from "../interfaces";
 import * as ROSLIB from "../roslib/index";
 
 interface RosConnectionManagerProps {
     namespace: string;
     url: string | null;
-    onDiagnosticsUpdate: (diagnostics: DiagnosticsEntry[]) => void;
+    onDiagnosticsUpdate: (diagnosticsStatus: DiagnosticsStatus) => void;
     onConnectionStatusChange: (connected: boolean) => void;
+    onClearHistory: () => void;
 }
+
+// Helper function to calculate overall diagnostic level
+const calculateOverallLevel = (diagnostics: DiagnosticsEntry[]): number => {
+    let maxLevel = 0;
+
+    const checkEntry = (entry: DiagnosticsEntry) => {
+        if (entry.severity_level > maxLevel) {
+            maxLevel = entry.severity_level;
+        }
+        entry.children.forEach(checkEntry);
+    };
+
+    diagnostics.forEach(checkEntry);
+    return maxLevel;
+};
 
 // Helper function to build a nested DiagnosticsEntry tree
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,7 +61,7 @@ const buildDiagnosticsTree = (diagnostics: any[]): DiagnosticsEntry[] => {
         const parts = name.split("/");
         let currentLevel = root;
 
-        parts.forEach((part, index) => {
+        parts.forEach((part: string, index: number) => {
             if (!part) return; // Skip empty parts
 
             let existingEntry = currentLevel.find(entry => entry.name === part);
@@ -107,6 +123,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
     url,
     onDiagnosticsUpdate,
     onConnectionStatusChange,
+    onClearHistory
 }) => {
     useEffect(() => {
         if (!url) {
@@ -114,6 +131,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             return;
         }
 
+        console.log(`Creating new connection to ${url} for namespace ${namespace}`);
         const ros = new ROSLIB.Ros({ url });
 
         const diagnosticsTopic = new ROSLIB.Topic({
@@ -132,7 +150,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             ros.connect(url);
 
             ros.on("connection", () => {
-                onDiagnosticsUpdate([]);
+                onClearHistory();
                 console.log("Connected to Foxglove bridge at " + url);
                 onConnectionStatusChange(true);
 
@@ -151,7 +169,30 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                                 values,
                             }))
                         );
-                        onDiagnosticsUpdate(diagnosticsTree);
+
+                        // Calculate overall level from diagnostics tree
+                        const overallLevel = calculateOverallLevel(diagnosticsTree);
+
+                        // Extract timestamp from ROS message header
+                        let timestamp = Date.now(); // Default fallback
+                        if (message.header && message.header.stamp) {
+                            // Convert ROS time (sec + nanosec) to JavaScript timestamp (milliseconds)
+                            const sec = message.header.stamp.sec || 0;
+                            const nanosec = message.header.stamp.nanosec || 0;
+                            timestamp = sec * 1000 + Math.round(nanosec / 1000000);
+                            // console.log(`Extracted timestamp from ROS message: ${new Date(timestamp).toISOString()}`);
+                        } else {
+                            console.log("No header.stamp found in message, using current time");
+                        }
+
+                        // Create DiagStatus object
+                        const diagStatus: DiagnosticsStatus = {
+                            timestamp,
+                            level: overallLevel,
+                            diagnostics: diagnosticsTree
+                        };
+
+                        onDiagnosticsUpdate(diagStatus);
                     } else {
                         console.warn("Unexpected diagnostics data format:", message);
                     }
@@ -159,7 +200,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
                     // Set a timeout to clear stale diagnostics if no new message is received
                     staleTimeoutId = setTimeout(() => {
                         console.warn("No diagnostics message received for 5 seconds. Clearing stale diagnostics.");
-                        onDiagnosticsUpdate([]);
+                        onClearHistory();
                     }, timeoutDuration);
                 });
                 console.log(`Subscribed to topic: ${diagnosticsTopic.name}`);
@@ -173,7 +214,7 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
             ros.on("close", () => {
                 onConnectionStatusChange(false);
                 console.log("Connection to Foxglove bridge closed");
-                onDiagnosticsUpdate([]);
+                onClearHistory();
                 clearTimeout(staleTimeoutId);
                 clearTimeout(retryTimeoutId);
                 if (retryConnection) {
@@ -187,12 +228,12 @@ export const RosConnectionManager: React.FC<RosConnectionManagerProps> = ({
 
         // Cleanup function
         return () => {
-            console.log("ROS Connection Manager return");
+            console.log(`Cleaning up connection for namespace ${namespace}`);
             diagnosticsTopic.unsubscribe();
             retryConnection = false;
             ros.close();
         };
-    }, [namespace, url, onDiagnosticsUpdate, onConnectionStatusChange]);
+    }, [namespace, url, onDiagnosticsUpdate, onConnectionStatusChange, onClearHistory]);
 
     return null; // This component does not render anything
 };
