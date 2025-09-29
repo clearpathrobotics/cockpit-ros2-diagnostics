@@ -17,7 +17,7 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import cockpit from "cockpit";
 
@@ -31,9 +31,9 @@ export const useNamespace = () => {
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
     const [manualEntryRequired, setManualEntryRequired] = useState(false);
 
-    const setManualNamespace = (namespace: string) => {
-        setNamespace(sanitizeNamespace(namespace));
-    };
+    const setManualNamespace = useCallback((ns: string) => {
+        setNamespace(sanitizeNamespace(ns));
+    }, []);
 
     useEffect(() => {
         const yamlFile = cockpit.file("/etc/clearpath/robot.yaml");
@@ -78,7 +78,9 @@ export const useNamespace = () => {
         };
 
         yamlFile.watch(updateNamespace);
-        return yamlFile.close;
+        return () => {
+            if (yamlFile && yamlFile.close) yamlFile.close();
+        };
     }, []);
 
     return { namespace, setManualNamespace, invalidNamespaceMessage, manualEntryRequired };

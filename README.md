@@ -4,6 +4,8 @@ This is a Cockpit module that is intended to be installed alongside [Cockpit](ht
 
 This module is built on the cockpit starter kit: https://github.com/cockpit-project/starter-kit and using modified code files from https://github.com/tier4/roslibjs-foxglove.
 
+![Screenshot of Main View](screenshots/ScreenshotPluginHome.png)
+
 # Installation instructions
 
 This is installed and running automatically on Clearpath Robots without any manual installation required.

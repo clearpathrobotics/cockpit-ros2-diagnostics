@@ -63,12 +63,14 @@ export const DiagnosticsTable = ({
             className='diagnostics-title'
         >
             <Table aria-label={`${variant === "error" ? "Errors" : "Warnings"} Table`} borders={false} variant="compact">
-                <Thead>
-                    <Tr>
-                        <Th>{_("Name")}</Th>
-                        <Th>{_("Message")}</Th>
-                    </Tr>
-                </Thead>
+                {filteredDiagnostics.length > 0 && (
+                    <Thead>
+                        <Tr>
+                            <Th>{_("Name")}</Th>
+                            <Th>{_("Message")}</Th>
+                        </Tr>
+                    </Thead>
+                )}
                 <Tbody>
                     {filteredDiagnostics.map((diag, index) => (
                         <Tr
@@ -92,7 +94,7 @@ export const DiagnosticsTable = ({
                                         headingLevel="h2"
                                         titleText={variant === "error" ? _("No Errors") : _("No Warnings")}
                                         icon={CheckCircleIcon}
-                                        variant={EmptyStateVariant.sm}
+                                        variant={EmptyStateVariant.xs}
                                     />
                                 </Bullseye>
                             </Td>

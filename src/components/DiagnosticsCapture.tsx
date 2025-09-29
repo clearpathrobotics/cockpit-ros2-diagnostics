@@ -60,6 +60,7 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             const commands_su = [
                 `dmesg -T >> ${temp_folder}/dmesg.log`,
                 `cp -r /etc/netplan ${temp_folder}/netplan`,
+                `sed -i 's/\\(\\s*password:\\s*\\).*/\\1<redacted>/' ${temp_folder}/netplan/* 2>/dev/null || true`, // Redact any passwords in netplan files
                 `journalctl -b 0 >> ${temp_folder}/journal.log`,
             ];
 

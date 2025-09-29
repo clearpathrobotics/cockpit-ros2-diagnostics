@@ -27,6 +27,7 @@ import {
     DrawerContent,
     DrawerContentBody,
     DrawerPanelContent,
+    DrawerPanelBody,
     DrawerHead,
     DrawerActions,
     DrawerCloseButton,
@@ -206,36 +207,38 @@ export const DiagnosticsTreeTable = ({
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
                     </DrawerHead>
-                    <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
-                    <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
-                    <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
-                    <p><strong>{_("Level")}:</strong> {
-                        selectedEntry.severity_level === 3
-                            ? _("STALE")
-                            : selectedEntry.severity_level === 2
-                                ? _("ERROR")
-                                : selectedEntry.severity_level === 1
-                                    ? _("WARNING")
-                                    : _("OK")
-                    }
-                    </p>
-                    <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
-                    {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
-                        <>
-                            <p>&nbsp;</p>
-                            <p><strong>{_("Values")}:</strong></p>
-                            <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
-                                <Tbody>
-                                    {Object.entries(selectedEntry.values).map(([key, value]) => (
-                                        <Tr key={key}>
-                                            <Td>{key}</Td>
-                                            <Td>{value}</Td>
-                                        </Tr>
-                                    ))}
-                                </Tbody>
-                            </Table>
-                        </>
-                    )}
+                    <DrawerPanelBody>
+                        <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
+                        <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
+                        <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
+                        <p><strong>{_("Level")}:</strong> {
+                            selectedEntry.severity_level === 3
+                                ? _("STALE")
+                                : selectedEntry.severity_level === 2
+                                    ? _("ERROR")
+                                    : selectedEntry.severity_level === 1
+                                        ? _("WARNING")
+                                        : _("OK")
+                        }
+                        </p>
+                        <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
+                        {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
+                            <>
+                                <p>&nbsp;</p>
+                                <p><strong>{_("Values")}:</strong></p>
+                                <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
+                                    <Tbody>
+                                        {Object.entries(selectedEntry.values).map(([key, value]) => (
+                                            <Tr key={key}>
+                                                <Td>{key}</Td>
+                                                <Td>{value}</Td>
+                                            </Tr>
+                                        ))}
+                                    </Tbody>
+                                </Table>
+                            </>
+                        )}
+                    </DrawerPanelBody>
                 </div>
             )}
         </DrawerPanelContent>
@@ -249,12 +252,14 @@ export const DiagnosticsTreeTable = ({
                     <DrawerContent panelContent={drawerPanel}>
                         <DrawerContentBody>
                             <Table isTreeTable variant="compact" aria-label={_("Diagnostics Tree Table")} borders={false}>
-                                <Thead>
-                                    <Tr>
-                                        <Th>{_("Name")}</Th>
-                                        <Th>{_("Message")}</Th>
-                                    </Tr>
-                                </Thead>
+                                {diagnostics.length > 0 && (
+                                    <Thead>
+                                        <Tr>
+                                            <Th>{_("Name")}</Th>
+                                            <Th>{_("Message")}</Th>
+                                        </Tr>
+                                    </Thead>
+                                )}
                                 <Tbody>
                                     {renderRows(diagnostics)}
                                     {(diagnostics.length === 0) && (
@@ -265,11 +270,11 @@ export const DiagnosticsTreeTable = ({
                                                         headingLevel="h2"
                                                         titleText="Connecting"
                                                         icon={Spinner}
-                                                        variant={EmptyStateVariant.sm}
+                                                        variant={EmptyStateVariant.xs}
                                                     >
                                                         <EmptyStateBody>
                                                             { bridgeConnected
-                                                                ? _("Listening for the diagnostics topic...")
+                                                                ? _("Waiting for diagnostics messages...")
                                                                 : _("Attempting to connect to the Foxglove bridge...")}
                                                         </EmptyStateBody>
                                                     </EmptyState>
