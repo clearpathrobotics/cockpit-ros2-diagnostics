@@ -27,6 +27,7 @@ import {
     DrawerContent,
     DrawerContentBody,
     DrawerPanelContent,
+    DrawerPanelBody,
     DrawerHead,
     DrawerActions,
     DrawerCloseButton,
@@ -206,36 +207,38 @@ export const DiagnosticsTreeTable = ({
                             <DrawerCloseButton onClick={closeDrawer} />
                         </DrawerActions>
                     </DrawerHead>
-                    <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
-                    <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
-                    <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
-                    <p><strong>{_("Level")}:</strong> {
-                        selectedEntry.severity_level === 3
-                            ? _("STALE")
-                            : selectedEntry.severity_level === 2
-                                ? _("ERROR")
-                                : selectedEntry.severity_level === 1
-                                    ? _("WARNING")
-                                    : _("OK")
-                    }
-                    </p>
-                    <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
-                    {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
-                        <>
-                            <p>&nbsp;</p>
-                            <p><strong>{_("Values")}:</strong></p>
-                            <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
-                                <Tbody>
-                                    {Object.entries(selectedEntry.values).map(([key, value]) => (
-                                        <Tr key={key}>
-                                            <Td>{key}</Td>
-                                            <Td>{value}</Td>
-                                        </Tr>
-                                    ))}
-                                </Tbody>
-                            </Table>
-                        </>
-                    )}
+                    <DrawerPanelBody>
+                        <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
+                        <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
+                        <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
+                        <p><strong>{_("Level")}:</strong> {
+                            selectedEntry.severity_level === 3
+                                ? _("STALE")
+                                : selectedEntry.severity_level === 2
+                                    ? _("ERROR")
+                                    : selectedEntry.severity_level === 1
+                                        ? _("WARNING")
+                                        : _("OK")
+                        }
+                        </p>
+                        <p><strong>{_("Message")}:</strong> {selectedEntry.message}</p>
+                        {selectedEntry.values && Object.keys(selectedEntry.values).length > 0 && (
+                            <>
+                                <p>&nbsp;</p>
+                                <p><strong>{_("Values")}:</strong></p>
+                                <Table aria-label={_("Diagnostic Values Table")} borders={false} variant="compact">
+                                    <Tbody>
+                                        {Object.entries(selectedEntry.values).map(([key, value]) => (
+                                            <Tr key={key}>
+                                                <Td>{key}</Td>
+                                                <Td>{value}</Td>
+                                            </Tr>
+                                        ))}
+                                    </Tbody>
+                                </Table>
+                            </>
+                        )}
+                    </DrawerPanelBody>
                 </div>
             )}
         </DrawerPanelContent>
