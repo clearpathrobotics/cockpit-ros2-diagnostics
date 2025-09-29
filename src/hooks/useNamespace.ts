@@ -78,7 +78,9 @@ export const useNamespace = () => {
         };
 
         yamlFile.watch(updateNamespace);
-        return yamlFile.close;
+        return () => {
+            if (yamlFile && yamlFile.close) yamlFile.close();
+        };
     }, []);
 
     return { namespace, setManualNamespace, invalidNamespaceMessage, manualEntryRequired };
