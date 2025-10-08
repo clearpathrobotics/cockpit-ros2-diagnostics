@@ -181,25 +181,29 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                         </FlexItem>
                     )}
                     {!isCapturing && (
-                        <FlexItem>
+                        <>
                             {errorMessage && (
-                                <Alert variant="danger" title={errorMessage} />
+                                <FlexItem>
+                                    <Alert variant="danger" title={errorMessage} />
+                                </FlexItem>
                             )}
                             {downloadPath && (
-                                <Alert
-                                    variant="success"
-                                    title={_(`Diagnostics captured successfully (${downloadPath}).`)}
-                                >
-                                    <Button
-                                        variant="link"
-                                        isInline
-                                        onClick={() => downloadFile(downloadPath)}
+                                <FlexItem>
+                                    <Alert
+                                        variant="success"
+                                        title={_(`Diagnostics captured successfully (${downloadPath}).`)}
                                     >
-                                        {_("Download Diagnostics File")}
-                                    </Button>
-                                </Alert>
+                                        <Button
+                                            variant="link"
+                                            isInline
+                                            onClick={() => downloadFile(downloadPath)}
+                                        >
+                                            {_("Download Diagnostics File")}
+                                        </Button>
+                                    </Alert>
+                                </FlexItem>
                             )}
-                        </FlexItem>
+                        </>
                     )}
                 </Flex>
             </CardBody>
