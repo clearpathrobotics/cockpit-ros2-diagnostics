@@ -22,7 +22,8 @@ import {
     ProgressStepper,
     ProgressStep,
     Flex,
-    FlexItem
+    FlexItem,
+    Title
 } from '@patternfly/react-core';
 
 import { DiagnosticsStatus } from "../interfaces";
@@ -55,43 +56,48 @@ export const HistorySelection = ({
 
     return (
         <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
-            <FlexItem>
-                <ProgressStepper isCenterAligned aria-label="Diagnostics History">
-                    {
-                        Array.from({ length: HISTORY_SIZE - diagHistory.length }).map((_, index) => (
-                            <ProgressStep
-                                key={index}
-                                id={`blank-step-${index}`}
-                                titleId={`blank-step-${index}-title`}
-                            />
-                        ))
-                    }
+            <Flex direction={{ default: 'row' }} alignItems={{ default: 'alignItemsCenter' }}>
+                <FlexItem>
+                    <Title headingLevel="h2">Timeline:</Title>
+                </FlexItem>
+                <FlexItem grow={{ default: 'grow' }}>
+                    <ProgressStepper isCenterAligned aria-label="Diagnostics History">
+                        {
+                            Array.from({ length: HISTORY_SIZE - diagHistory.length }).map((_, index) => (
+                                <ProgressStep
+                                    key={index}
+                                    id={`blank-step-${index}`}
+                                    titleId={`blank-step-${index}-title`}
+                                />
+                            ))
+                        }
 
-                    {diagHistory.map((diagStatus, index) => {
-                        const variant = diagStatus.level >= 2
-                            ? "danger"
-                            : diagStatus.level === 1
-                                ? "warning"
-                                : "success";
+                        {diagHistory.map((diagStatus, index) => {
+                            const variant = diagStatus.level >= 2
+                                ? "danger"
+                                : diagStatus.level === 1
+                                    ? "warning"
+                                    : "success";
 
-                        return (
-                            <ProgressStep
-                                key={index}
-                                variant={((diagHistory.length + negIndex) === index) ? "info" : variant}
-                                id={`history-step-${index}`}
-                                titleId={`history-step-${index}-title`}
-                                aria-label={`diagnostics snapshot ${index + 1}`}
-                                onClick={() => {
-                                    setDiagStatusDisplay(diagStatus);
-                                    setIsPaused(true);
-                                    setNegIndex(index - diagHistory.length);
-                                }}
-                                style={{ cursor: 'pointer' }}
-                            />
-                        );
-                    })}
-                </ProgressStepper>
-            </FlexItem>
+                            return (
+                                <ProgressStep
+                                    key={index}
+                                    variant={((diagHistory.length + negIndex) === index) ? "info" : variant}
+                                    id={`history-step-${index}`}
+                                    titleId={`history-step-${index}-title`}
+                                    aria-label={`diagnostics snapshot ${index + 1}`}
+                                    onClick={() => {
+                                        setDiagStatusDisplay(diagStatus);
+                                        setIsPaused(true);
+                                        setNegIndex(index - diagHistory.length);
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            );
+                        })}
+                    </ProgressStepper>
+                </FlexItem>
+            </Flex>
             <FlexItem>
                 <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
                     <FlexItem>
