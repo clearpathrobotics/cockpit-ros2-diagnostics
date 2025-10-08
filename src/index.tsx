@@ -19,6 +19,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { CookiesProvider } from 'react-cookie';
 
 import "cockpit-dark-theme";
 
@@ -28,5 +29,9 @@ import "patternfly/patternfly-6-cockpit.scss";
 import './app.scss';
 
 document.addEventListener("DOMContentLoaded", () => {
-    createRoot(document.getElementById("app")!).render(<Application />);
+    createRoot(document.getElementById("app")!).render(
+        <CookiesProvider>
+            <Application />
+        </CookiesProvider>
+    );
 });
