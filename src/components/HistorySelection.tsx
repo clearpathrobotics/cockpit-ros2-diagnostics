@@ -54,7 +54,7 @@ export const HistorySelection = ({
     }, [diagHistory, setDiagStatusDisplay, isPaused]);
 
     return (
-        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsNone' }}>
+        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
             <FlexItem>
                 <ProgressStepper isCenterAligned aria-label="Diagnostics History">
                     {
