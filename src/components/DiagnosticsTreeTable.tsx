@@ -206,6 +206,7 @@ export const DiagnosticsTreeTable = ({
                     <DrawerPanelBody>
                         <div tabIndex={0} ref={drawerRef}>
                             <Title headingLevel="h4" size="md">{selectedEntry.icon} {selectedEntry.name}</Title>
+                            <p>&nbsp;</p>
                             <p><strong>{_("Path")}:</strong> {selectedEntry.path}</p>
                             <p><strong>{_("Hardware ID")}:</strong> {selectedEntry.hardware_id || _("N/A")}</p>
                             <p><strong>{_("Level")}:</strong> {
@@ -227,8 +228,8 @@ export const DiagnosticsTreeTable = ({
                                         <Tbody>
                                             {Object.entries(selectedEntry.values).map(([key, value]) => (
                                                 <Tr key={key}>
-                                                    <Td>{key}</Td>
-                                                    <Td>{value}</Td>
+                                                    <Td noPadding style={{ padding: "2px 0px 2px 8px" }}>{key}</Td>
+                                                    <Td noPadding style={{ padding: "2px 0px 2px 8px" }}>{value}</Td>
                                                 </Tr>
                                             ))}
                                         </Tbody>
