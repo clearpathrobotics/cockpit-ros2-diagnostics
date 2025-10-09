@@ -22,18 +22,31 @@ import { useCallback, useEffect, useState } from "react";
 import cockpit from "cockpit";
 
 import { sameNamespace, sanitizeNamespace } from "../utils/namespaceUtils";
+import { useCookies } from "react-cookie";
 
 const _ = cockpit.gettext;
+
+const NAMESPACE_COOKIE = "diag_agg_namespace";
 
 // Custom hook to manage namespace
 export const useNamespace = () => {
     const [namespace, setNamespace] = useState("");
     const [invalidNamespaceMessage, setInvalidNamespaceMessage] = useState<string | null>(null);
     const [manualEntryRequired, setManualEntryRequired] = useState(false);
+    const [cookies, setCookie] = useCookies([NAMESPACE_COOKIE]);
 
     const setManualNamespace = useCallback((ns: string) => {
-        setNamespace(sanitizeNamespace(ns));
-    }, []);
+        const ns_temp = sanitizeNamespace(ns);
+        setNamespace(ns_temp);
+        setCookie(NAMESPACE_COOKIE, ns_temp);
+    }, [setCookie]);
+
+    useEffect(() => {
+        if (cookies[NAMESPACE_COOKIE]) {
+            console.log("Using namespace from cookie:", cookies[NAMESPACE_COOKIE]);
+            setNamespace(cookies[NAMESPACE_COOKIE]);
+        }
+    }, [cookies]);
 
     useEffect(() => {
         const yamlFile = cockpit.file("/etc/clearpath/robot.yaml");
