@@ -1,3 +1,12 @@
+cockpit-ros2-diagnostics (0.1.2-1) unstable; urgency=medium
+
+  * Refined visuals
+  * Update build
+  * Clean up
+  * Added history
+
+ -- Hilary Luo <hluo@clearpathrobotics.com>  Sat, 11 Oct 2025 20:19:00 +0400
+
 cockpit-ros2-diagnostics (0.1.1-1) unstable; urgency=medium
 
   * Fixed diagnostic capture with FastDDS Discovery Server Mode
