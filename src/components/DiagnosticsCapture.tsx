@@ -112,7 +112,7 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
                 }
             }
 
-            if (await runBash("test -f /etc/clearpath/robot.yaml && echo 'exists'")) {
+            if ((await runBash("[ -f /etc/clearpath/robot.yaml ] && echo 'yes' || echo 'no'")).trim() === "yes") {
                 for (const command of commands_clearpath) {
                     try {
                         const output = await runBash(command);
@@ -130,12 +130,14 @@ export const DiagnosticsCapture = ({ namespace }: { namespace: string }) => {
             const home = (await runBash("echo $HOME")).trim();
             const current_datetime = (await runBash("date +%Y-%m-%d_%H-%M-%S")).trim();
             let archive_name = `${home}/diagnostic_captures/${hostname}_${current_datetime}`;
-            if (failedCommand) archive_name += "_incomplete";
+            if (failedCommand) {
+                archive_name += "_incomplete";
+            }
             archive_name += ".tar.gz";
             console.log("Archive name:", archive_name);
             await runBash(`mkdir -p ${home}/diagnostic_captures`);
             await runBash(`cd ${temp_folder} && tar -czvf ${archive_name} .`, { superuser: "require" });
-            console.log("tar command executed successfully");
+            console.log("TAR archive created successfully");
             await runBash(`rm -rf ${temp_folder}`, { superuser: "require" });
             if (failedCommand) {
                 setErrorMessage(failedCommandMessage + "View console log for details.");
