@@ -1,3 +1,11 @@
+cockpit-ros2-diagnostics (0.1.3-1) unstable; urgency=medium
+
+  * Add the new websocket protocol for the new Foxglove bridge released from the SDK
+  * improve detection of whether it is a clearpath robot
+  * Update packages
+
+ -- Hilary Luo <hluo@clearpathrobotics.com>  Wed, 22 Oct 2025 15:19:00 +0400
+
 cockpit-ros2-diagnostics (0.1.2-1) unstable; urgency=medium
 
   * Refined visuals
