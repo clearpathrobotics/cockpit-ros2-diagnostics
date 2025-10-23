@@ -43,7 +43,7 @@ The following instructions should be completed on the computer that is to be mon
     ros2 launch foxglove_bridge foxglove_bridge_launch.xml
     ```
 
-2. Open a supported browser and go to `http://<ip-address>:9090` but replace `<ip-address>` with the ip address or hostname of your robot computer. Remember to use the IP address for the network that over which you are connecting to the robot. In order for the websocket connection to work and successfully receive the ROS 2 topics, cockpit must be accessed over http. This is an unsecure connection but it is the simplest to configure. If a secure connection is required then cockpit must be setup behind a reverse proxy.
+2. Open a supported browser and go to `http://<ip-address>:9090` but replace `<ip-address>` with the ip address or hostname of your robot computer. Remember to use the IP address for the network that over which you are connecting to the robot. In order for the websocket connection to work and successfully receive the ROS 2 topics, cockpit must be accessed over http, which is an unsecure connection. **Setting up a secure connection over https is currently unsupported**, but contributions are welcome.
 
 3. Go to the ROS 2 Diagnostics tab
 
