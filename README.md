@@ -1,16 +1,16 @@
 # Cockpit ROS 2 Diagnostics
 
-This is a Cockpit module that is intended to be installed alongside [Cockpit](https://cockpit-project.org/) and connects to the [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge)
+This is a Cockpit application that is intended to be installed alongside [Cockpit](https://cockpit-project.org/) and connects to the [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge)
 
-This module is built on the cockpit starter kit: https://github.com/cockpit-project/starter-kit and using modified code files from https://github.com/tier4/roslibjs-foxglove.
+This application is built on the Cockpit starter kit (https://github.com/cockpit-project/starter-kit) and using modified code files from https://github.com/tier4/roslibjs-foxglove.
 
 ![Screenshot of Main View](screenshots/ScreenshotPluginHome.png)
 
 # Installation instructions
 
-This is installed and running automatically on Clearpath Robots without any manual installation required.
+This is installed and running automatically on Clearpath Robots without any manual installation required. For all other ROS computers, proceed with the following instructions.
 
-The following instructions should be completed on the computer that is to be monitored and managed using the cockpit interface. In most cases this will be the robot computer.
+The following instructions should be completed on the computer that is to be monitored and managed using the Cockpit interface. In most cases this will be the robot computer.
 
 1. Install cockpit: https://cockpit-project.org/running.html#ubuntu
 
@@ -22,13 +22,13 @@ The following instructions should be completed on the computer that is to be mon
     sudo apt update
     ```
 
-3. Install this module and the foxglove bridge
+3. Install this module and the Foxglove bridge
 
     ```bash
     sudo apt install cockpit-ros2-diagnostics ros-$ROS_DISTRO-foxglove-bridge
     ```
 
-4. In order to open the UI on a remote computer and connect to the foxglove bridge, either this has to happen over an unsecured connection (http) or cockpit must be placed behind a reverse proxy. The currently supported option is to set cockpit up for an unsecure connection. Allow an unencrypted HTTP connection by creating the [cockpit.conf](https://cockpit-project.org/guide/latest/cockpit.conf.5) file and set `AllowUnencrypted=true` in the `WebService` section.
+4. In order to open the UI on a remote computer and connect to the Foxglove bridge, an unsecured connection (http) must be used. Allow an unencrypted HTTP connection by creating the [cockpit.conf](https://cockpit-project.org/guide/latest/cockpit.conf.5) file and set `AllowUnencrypted=true` in the `WebService` section. This is all done by running the following command:
 
     ```bash
     echo "[WebService]
@@ -37,15 +37,15 @@ The following instructions should be completed on the computer that is to be mon
 
 # Usage Instructions
 
-1. If not using with a Clearpath Robot then you will need to start your [foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge) manually. It must be launched with the default port (8765):
+1. If not using a Clearpath Robot then you will need to start your [Foxglove bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge) manually. It must be launched with the default port (8765):
 
     ```bash
     ros2 launch foxglove_bridge foxglove_bridge_launch.xml
     ```
 
-2. Open a supported browser and go to `http://<ip-address>:9090` but replace `<ip-address>` with the ip address or hostname of your robot computer. Remember to use the IP address for the network that over which you are connecting to the robot. In order for the websocket connection to work and successfully receive the ROS 2 topics, cockpit must be accessed over http. This is an unsecure connection but it is the simplest to configure. If a secure connection is required then cockpit must be setup behind a reverse proxy.
+2. Open a [supported browser](https://cockpit-project.org/running) and go to `http://<ip-address>:9090` but replace `<ip-address>` with the ip address or hostname of your robot computer. Remember to use the IP address for the network over which you are connecting to the robot. In order for the websocket connection to work and successfully receive the ROS 2 topics, cockpit must be accessed over http, which is an unsecure connection. **Setting up a secure connection over https is currently unsupported**, but contributions are welcome.
 
-3. Go to the ROS 2 Diagnostics tab
+3. Go to the ROS 2 Diagnostics tab.
 
 # Development and Source Instructions
 
@@ -150,7 +150,7 @@ Rules configuration can be found in the `.stylelintrc.json` file.
 
 ## Running tests locally
 
-** These tests are still under development **
+** **These tests are still under development** **
 
 To run the tests locally you must install:
 
@@ -180,63 +180,3 @@ It is possible to setup the test environment without running the tests:
 You can also run the test against a different Cockpit image, for example:
 
     TEST_OS=fedora-40 make check
-
-## Running tests in CI
-
-These tests can be run in [Cirrus CI](https://cirrus-ci.org/), on their free
-[Linux Containers](https://cirrus-ci.org/guide/linux/) environment which
-explicitly supports `/dev/kvm`. Please see [Quick
-Start](https://cirrus-ci.org/guide/quick-start/) how to set up Cirrus CI for
-your project after forking from starter-kit.
-
-The included [.cirrus.yml](./.cirrus.yml) runs the integration tests for two
-operating systems (Fedora and CentOS 8). Note that if/once your project grows
-bigger, or gets frequent changes, you may need to move to a paid account, or
-different infrastructure with more capacity.
-
-Tests also run in [Packit](https://packit.dev/) for all currently supported
-Fedora releases; see the [packit.yaml](./packit.yaml) control file. You need to
-[enable Packit-as-a-service](https://packit.dev/docs/packit-service/) in your GitHub project to use this.
-To run the tests in the exact same way for upstream pull requests and for
-[Fedora package update gating](https://docs.fedoraproject.org/en-US/ci/), the
-tests are wrapped in the [FMF metadata format](https://github.com/teemtee/fmf)
-for using with the [tmt test management tool](https://docs.fedoraproject.org/en-US/ci/tmt/).
-Note that Packit tests can *not* run their own virtual machine images, thus
-they only run [@nondestructive tests](https://github.com/cockpit-project/cockpit/blob/main/test/common/testlib.py).
-
-## Automated release of tarballs on Github
-
-Once your cloned project is ready for a release, you should consider automating
-that. The intention is that the only manual step for releasing a project is to create
-a signed tag for the version number, which includes a summary of the noteworthy
-changes:
-
-```
-123
-
-- this new feature
-- fix bug #123
-```
-
-Pushing the release tag triggers the [release.yml](.github/workflows/release.yml.disabled)
-[GitHub action](https://github.com/features/actions) workflow. This creates the
-official release tarball and publishes as upstream release to GitHub. The
-workflow is disabled by default -- to use it, edit the file as per the comment
-at the top, and rename it to just `*.yml`.
-
-The Fedora and COPR releases are done with [Packit](https://packit.dev/),
-see the [packit.yaml](./packit.yaml) control file.
-
-## Automated maintenance
-
-It is important to keep your [NPM modules](./package.json) up to date, to keep
-up with security updates and bug fixes. This happens with
-[dependabot](https://github.com/dependabot),
-see [configuration file](.github/dependabot.yml).
-
-## Further reading
-
- * The [Starter Kit announcement](https://cockpit-project.org/blog/cockpit-starter-kit.html)
-   blog post explains the rationale for this project.
- * [Cockpit Deployment and Developer documentation](https://cockpit-project.org/guide/latest/)
- * [Make your project easily discoverable](https://cockpit-project.org/blog/making-a-cockpit-application.html)
